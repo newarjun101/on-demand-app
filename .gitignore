@@ -12,3 +12,6 @@ coverage/
 backend/uploads/
 backend/prisma/migrations/dev*
 *.tsbuildinfo
+*.tsbuild
+vite.config.js
+vite.config.d.ts
