@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: lsm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lsm
+      POSTGRES_PASSWORD: lsm_password
+      POSTGRES_DB: lsm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lsm -d lsm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: lsm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lsm-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://lsm:lsm_password@postgres:5432/lsm?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change_me_jwt_secret_change_me_jwt_secret
+      JWT_REFRESH_SECRET: change_me_refresh_secret_change_me_refresh_secret
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 14d
+      CUSTOMER_WEB_URL: http://localhost:5173
+      WORKER_WEB_URL: http://localhost:5174
+      UPLOAD_DIR: /app/uploads
+      PLATFORM_COMMISSION_PERCENT: 10
+      CORS_ORIGINS: http://localhost:5173,http://localhost:5174
+    ports:
+      - "4000:4000"
+    volumes:
+      - backend_uploads:/app/uploads
+
+  customer-web:
+    build:
+      context: ./customer-web
+      dockerfile: Dockerfile
+    container_name: lsm-customer-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+      VITE_SOCKET_URL: http://localhost:4000
+    ports:
+      - "5173:80"
+
+  worker-web:
+    build:
+      context: ./worker-web
+      dockerfile: Dockerfile
+    container_name: lsm-worker-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+      VITE_SOCKET_URL: http://localhost:4000
+    ports:
+      - "5174:80"
+
+volumes:
+  postgres_data:
+  backend_uploads:

@@ -1,0 +1,550 @@
+// Local Services Marketplace - Prisma schema
+// PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================
+// Enums
+// ========================
+
+enum Role {
+  CUSTOMER
+  WORKER
+  ADMIN
+}
+
+enum WorkerVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum PricingType {
+  FIXED
+  STARTING_FROM
+  HOURLY
+  QUOTE_REQUIRED
+}
+
+enum RequestSchedule {
+  AS_SOON_AS_POSSIBLE
+  TODAY
+  TOMORROW
+  CUSTOM_DATE
+}
+
+enum RequestStatus {
+  CREATED
+  FINDING_WORKERS
+  QUOTES_RECEIVED
+  QUOTE_ACCEPTED
+  BOOKING_CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+enum QuoteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum BookingStatus {
+  CONFIRMED
+  ON_THE_WAY
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  CASH_ON_COMPLETION
+  KBZPAY
+  WAVE_MONEY
+  AYA_PAY
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  REQUEST
+  QUOTE
+  BOOKING
+  MESSAGE
+  REVIEW
+  PAYMENT
+  SYSTEM
+  WORKER_APPROVAL
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+// ========================
+// Core users / auth
+// ========================
+
+model User {
+  id                String    @id @default(uuid())
+  role              Role
+  email             String?   @unique
+  phone             String?   @unique
+  passwordHash      String
+  fullName          String
+  avatarUrl         String?
+  isActive          Boolean   @default(true)
+  emailVerified     Boolean   @default(false)
+  phoneVerified     Boolean   @default(false)
+  lastLoginAt       DateTime?
+  refreshTokenHash  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  workerProfile   WorkerProfile?
+  customerBookings Booking[]      @relation("CustomerBookings")
+  customerRequests ServiceRequest[]      @relation("CustomerRequests")
+  workerJobs      Booking[]       @relation("WorkerJobs")
+  workerQuotes    Quote[]
+  conversationsAsCustomer Conversation[] @relation("ConvCustomer")
+  conversationsAsWorker   Conversation[] @relation("ConvWorker")
+  messages        Message[]
+  notifications   Notification[]
+  favorites       Favorite[]
+  reviewsAuthored Review[]        @relation("ReviewAuthor")
+  reviewsReceived Review[]        @relation("ReviewSubject")
+  paymentsMade    Payment[]       @relation("PaymentPayer")
+  paymentsReceived Payment[]  @relation("PaymentReceiver")
+  disputesOpened  Dispute[]       @relation("DisputeOpener")
+  addresses       Address[]
+
+  @@index([role])
+  @@index([deletedAt])
+}
+
+// ========================
+// Worker
+// ========================
+
+model WorkerProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bio             String?
+  experienceYears Int      @default(0)
+  city            String?
+  addressLine     String?
+  latitude        Float?
+  longitude       Float?
+  serviceRadiusKm Int      @default(10)
+  isOnline        Boolean  @default(false)
+  isAcceptingJobs Boolean  @default(true)
+  emergencyAvailable Boolean @default(false)
+  completedJobs   Int      @default(0)
+  ratingAverage   Float    @default(0)
+  ratingCount     Int      @default(0)
+  responseRate    Float    @default(0)
+  verificationStatus WorkerVerificationStatus @default(PENDING)
+  verifiedAt      DateTime?
+  rejectionReason String?
+
+  services        WorkerService[]
+  documents       WorkerDocument[]
+  portfolio       PortfolioImage[]
+  availability    WorkerAvailability[]
+  workingHours    WorkingHours[]
+  favorites       Favorite[]
+  // latest known location during active booking
+  liveLatitude    Float?
+  liveLongitude   Float?
+  liveLocationAt  DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([verificationStatus])
+  @@index([city])
+}
+
+// ========================
+// Services / categories
+// ========================
+
+model ServiceCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services    Service[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  categoryId  String
+  category    ServiceCategory @relation(fields: [categoryId], references: [id])
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workerServices WorkerService[]
+  requests       ServiceRequest[]
+
+  @@index([categoryId])
+}
+
+model WorkerService {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id])
+  pricingType     PricingType @default(STARTING_FROM)
+  startingPrice   Int?
+  hourlyRate      Int?
+  fixedPrice      Int?
+  estimatedMinutes Int?
+  emergencyAvailable Boolean @default(false)
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([workerProfileId, serviceId])
+  @@index([serviceId])
+}
+
+model WorkerDocument {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  type            String   // NRC, LICENSE, CERT, OTHER
+  fileUrl         String
+  status          WorkerVerificationStatus @default(PENDING)
+  uploadedAt      DateTime @default(now())
+}
+
+model PortfolioImage {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  imageUrl        String
+  caption         String?
+  createdAt       DateTime @default(now())
+}
+
+model WorkerAvailability {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  day             DayOfWeek
+  isAvailable     Boolean  @default(true)
+  startTime       String?  // "09:00"
+  endTime         String?  // "18:00"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([workerProfileId, day])
+}
+
+model WorkingHours {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  day             DayOfWeek
+  startTime       String
+  endTime         String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([workerProfileId, day])
+}
+
+// ========================
+// Requests / Quotes / Bookings
+// ========================
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String?
+  city      String
+  addressLine String
+  landmark  String?
+  latitude  Float
+  longitude Float
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceRequest {
+  id            String   @id @default(uuid())
+  customerId    String
+  customer      User     @relation("CustomerRequests", fields: [customerId], references: [id])
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id])
+  description   String
+  city          String
+  addressLine   String
+  landmark      String?
+  latitude      Float
+  longitude     Float
+  schedule      RequestSchedule
+  scheduledAt   DateTime?
+  minBudget     Int?
+  maxBudget     Int?
+  status        RequestStatus @default(CREATED)
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  photos        RequestPhoto[]
+  quotes        Quote[]
+  booking       Booking?
+
+  @@index([customerId])
+  @@index([serviceId])
+  @@index([status])
+}
+
+model RequestPhoto {
+  id        String   @id @default(uuid())
+  requestId String
+  request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model Quote {
+  id              String   @id @default(uuid())
+  requestId       String
+  request         ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          User     @relation(fields: [workerId], references: [id])
+  laborAmount     Int      @default(0)
+  materialsAmount Int      @default(0)
+  additionalFee   Int      @default(0)
+  totalAmount     Int
+  estimatedMinutes Int?
+  message         String?
+  status          QuoteStatus @default(PENDING)
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  booking         Booking?
+
+  @@index([requestId])
+  @@index([workerId])
+}
+
+model Booking {
+  id           String   @id @default(uuid())
+  requestId    String   @unique
+  request      ServiceRequest @relation(fields: [requestId], references: [id])
+  quoteId      String   @unique
+  quote        Quote    @relation(fields: [quoteId], references: [id])
+  customerId   String
+  customer     User     @relation("CustomerBookings", fields: [customerId], references: [id])
+  workerId     String
+  worker       User     @relation("WorkerJobs", fields: [workerId], references: [id])
+
+  status       BookingStatus @default(CONFIRMED)
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  arrivedAt    DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+
+  subtotal     Int
+  platformFee  Int
+  workerEarnings Int
+  total        Int
+  commissionPercent Int
+
+  payment      Payment?
+  review       Review?
+  dispute      Dispute?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([workerId])
+  @@index([status])
+}
+
+// ========================
+// Payment / Review / Dispute
+// ========================
+
+model Payment {
+  id            String   @id @default(uuid())
+  bookingId     String   @unique
+  booking       Booking  @relation(fields: [bookingId], references: [id])
+  payerId       String
+  payer         User     @relation("PaymentPayer", fields: [payerId], references: [id])
+  receiverId    String
+  receiver      User     @relation("PaymentReceiver", fields: [receiverId], references: [id])
+  method        PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  amount        Int
+  currency      String   @default("MMK")
+  externalRef   String?
+  paidAt        DateTime?
+  refundedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  authorId    String
+  author      User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  subjectId   String
+  subject     User     @relation("ReviewSubject", fields: [subjectId], references: [id])
+  rating      Int
+  comment     String?
+  photos      String[] // photo urls
+  createdAt   DateTime @default(now())
+
+  @@index([subjectId])
+}
+
+model Dispute {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  openerId    String
+  opener      User     @relation("DisputeOpener", fields: [openerId], references: [id])
+  reason      String
+  description String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ========================
+// Chat
+// ========================
+
+model Conversation {
+  id           String   @id @default(uuid())
+  customerId   String
+  customer     User     @relation("ConvCustomer", fields: [customerId], references: [id])
+  workerId     String
+  worker       User     @relation("ConvWorker", fields: [workerId], references: [id])
+  requestId    String?
+  bookingId    String?
+  lastMessageAt DateTime?
+  customerUnreadCount Int @default(0)
+  workerUnreadCount   Int @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  messages     Message[]
+
+  @@unique([customerId, workerId, requestId])
+  @@index([customerId])
+  @@index([workerId])
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User     @relation(fields: [senderId], references: [id])
+  text            String?
+  imageUrl        String?
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ========================
+// Misc
+// ========================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Favorite {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workerProfileId String
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, workerProfileId])
+}
+
+model FileUpload {
+  id        String   @id @default(uuid())
+  url       String
+  filename  String
+  mimetype  String
+  size      Int
+  ownerId   String?
+  createdAt DateTime @default(now())
+}
