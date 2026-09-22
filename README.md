@@ -270,7 +270,8 @@ backend/
 ├── src/
 │   ├── config/                # env loader
 │   ├── middleware/            # auth, rate limit, i18n (localized errors)
-│   ├── routes/                # HTTP route adapters and request validation
+│   ├── routes/                # Route registration and middleware composition
+│   ├── controllers/           # HTTP request/response orchestration
 │   ├── services/              # Business logic (auth, users, workers, admin, ...)
 │   ├── repositories/          # Persistence-facing data access helpers
 │   ├── validators/            # Zod request schemas

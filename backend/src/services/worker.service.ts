@@ -8,6 +8,7 @@ import {
   upsertAvailabilitySchema,
   setOnlineSchema,
   workerSearchSchema,
+  submitKycSchema,
 } from '../validators/worker';
 import { emitToUser } from '../sockets/io';
 
@@ -210,6 +211,22 @@ export const workerService = {
       data: input,
     });
     return updated;
+  },
+
+  async submitKyc(userId: string, input: z.infer<typeof submitKycSchema>) {
+    const profile = await prisma.workerProfile.findUnique({ where: { userId } });
+    if (!profile) throw errors.notFound('Worker profile not found');
+    return prisma.kycDocument.create({
+      data: {
+        workerProfileId: profile.id,
+        type: input.type,
+        fileUrl: input.fileUrl,
+        fileName: input.fileName,
+        documentNumber: input.documentNumber,
+        workerNotes: input.workerNotes,
+        status: 'PENDING',
+      },
+    });
   },
 
   async upsertService(userId: string, input: z.infer<typeof upsertServiceSchema>) {

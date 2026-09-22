@@ -182,7 +182,7 @@
     "needsMoreInfo": "Needs more info",
     "rejectionReason": "Reason for rejection (visible to worker)",
     "adminNotes": "Internal notes",
-    "viewDocument": "View document",
+    "viewDocument": "View document", "details": "विवरण देखें",
     "noPendingDocs": "No documents waiting for review",
     "reviewHistory": "Review history"
   },

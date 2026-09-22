@@ -33,6 +33,16 @@ export const userApi = {
     apiClient.post('/users/me/change-password', { currentPassword, newPassword }).then((r) => extractData<unknown>(r)),
 };
 
+export const fileApi = {
+  upload: (file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return apiClient.post('/files/upload', body, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => extractData<{ url: string; fullUrl: string }>(r));
+  },
+};
+
 export const categoryApi = {
   list: () => apiClient.get('/categories').then((r) => extractData<ServiceCategory[]>(r)),
 };
@@ -43,6 +53,8 @@ export const serviceApi = {
 export const workerApi = {
   myProfile: () => apiClient.get('/workers/me/profile').then((r) => extractData<any>(r)),
   updateProfile: (input: any) => apiClient.patch('/workers/me/profile', input).then((r) => extractData<WorkerProfile>(r)),
+  submitKyc: (input: { type: string; fileUrl: string; fileName: string; documentNumber?: string; workerNotes?: string }) =>
+    apiClient.post('/workers/me/kyc', input).then((r) => extractData<unknown>(r)),
   upsertService: (input: { serviceId: string; pricingType: string; startingPrice?: number; hourlyRate?: number; fixedPrice?: number; estimatedMinutes?: number; emergencyAvailable?: boolean; description?: string }) =>
     apiClient.post('/workers/me/services', input).then((r) => extractData<WorkerService>(r)),
   removeService: (serviceId: string) => apiClient.delete(`/workers/me/services/${serviceId}`).then((r) => extractData<unknown>(r)),

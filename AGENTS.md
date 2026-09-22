@@ -13,7 +13,7 @@ The backend runs on port `4000`. Docker Compose also exposes PostgreSQL on host 
 
 ## Architecture Rules
 
-- Keep HTTP transport concerns in `backend/src/routes/` and business rules in `backend/src/services/`.
+- Keep route registration and middleware composition in `backend/src/routes/`, HTTP request/response orchestration in `backend/src/controllers/`, and business rules in `backend/src/services/`.
 - Keep persistence and infrastructure concerns in `backend/src/repositories/` and `backend/src/config/`.
 - Validate request bodies, query strings, and route parameters with Zod before calling services.
 - Return API responses through the shared helpers in `backend/src/utils/api.ts`.

@@ -73,7 +73,7 @@
     "workerNotes": "Notes from worker", "reviewAction": "Action",
     "approve": "Approve", "reject": "Reject", "needsMoreInfo": "Needs more info",
     "rejectionReason": "Reason for rejection (visible to worker)",
-    "adminNotes": "Internal notes", "viewDocument": "View document",
+    "adminNotes": "Internal notes", "viewDocument": "View document", "details": "View details",
     "noPendingDocs": "No documents waiting for review"
   },
   "bookings": { "title": "Bookings", "subtitle": "All bookings on the platform", "search": "Search bookings", "service": "Service", "amount": "Amount", "fee": "Fee", "reason": "Reason", "refund": "Refund", "refundAmount": "Refund amount" },

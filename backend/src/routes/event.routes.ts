@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
 import { eventService } from '../services/event.service';
-import { ok } from '../utils/api';
 import { z } from 'zod';
 import { validate } from '../middleware/validate';
+import { eventController } from '../controllers/event.controller';
 
 export const eventRouter = Router();
 
@@ -19,20 +19,10 @@ const eventSchema = z.object({
 });
 
 // Log a single event (fire-and-forget from the client side).
-eventRouter.post('/', authenticate(), validate(eventSchema), async (req, res, next) => {
-  try {
-    const data = await eventService.log(req.user!.sub, req.body);
-    res.json(ok(data));
-  } catch (e) { next(e); }
-});
+eventRouter.post('/', authenticate(), validate(eventSchema), eventController.log);
 
 // Log a batch of events (e.g. when navigating between pages).
 const batchSchema = z.object({
   events: z.array(eventSchema).max(20),
 });
-eventRouter.post('/batch', authenticate(), validate(batchSchema), async (req, res, next) => {
-  try {
-    const results = await Promise.all(req.body.events.map((e: any) => eventService.log(req.user!.sub, e)));
-    res.json(ok({ count: results.length }));
-  } catch (e) { next(e); }
-});
+eventRouter.post('/batch', authenticate(), validate(batchSchema), eventController.logBatch);

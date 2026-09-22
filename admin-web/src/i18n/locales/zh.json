@@ -169,7 +169,7 @@
     "needsMoreInfo": "需要更多信息",
     "rejectionReason": "拒绝原因(服务者可见)",
     "adminNotes": "内部备注",
-    "viewDocument": "查看材料",
+    "viewDocument": "查看材料", "details": "查看详情",
     "noPendingDocs": "暂无待审核材料"
   },
   "bookings": {

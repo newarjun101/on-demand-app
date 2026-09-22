@@ -81,6 +81,8 @@ export const adminApi = {
   suspendWorker: (id: string, reason: string) => apiClient.post(`/admin/workers/${id}/suspend`, { reason }).then((r) => r.data),
   listKyc: (params: { status?: string; page?: number; pageSize?: number } = {}) =>
     apiClient.get('/admin/kyc', { params }).then((r) => r.data.data),
+  workerDocuments: (workerProfileId: string) =>
+    apiClient.get(`/admin/workers/${workerProfileId}/documents`).then((r) => r.data.data),
   reviewKyc: (id: string, body: { action: string; reason?: string; adminNotes?: string }) =>
     apiClient.post(`/admin/kyc/${id}/review`, body).then((r) => r.data),
   listBookings: (params: { page?: number; pageSize?: number; status?: string } = {}) =>

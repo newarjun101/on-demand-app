@@ -25,15 +25,13 @@ export function initSockets(httpServer: HttpServer): Server {
       if (auth?.token) token = String(auth.token);
       if (!token) token = socket.handshake.headers.authorization?.replace('Bearer ', '');
       if (!token) {
-        // allow unauthenticated connections but mark them as guests
-        return next();
+        return next(new Error('Authentication required'));
       }
       const payload = verifyAccessToken(token);
       socket.user = payload;
       next();
     } catch {
-      // ignore errors for sockets; allow as guest
-      next();
+      next(new Error('Invalid socket token'));
     }
   });
 

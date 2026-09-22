@@ -657,6 +657,9 @@ model AdminAuditLog {
 }
 
 enum KycDocumentType {
+  SELFIE
+  NATIONAL_ID_FRONT
+  NATIONAL_ID_BACK
   NATIONAL_ID
   PASSPORT
   DRIVER_LICENSE
