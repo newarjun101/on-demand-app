@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Info, Star, MessageCircle, Wrench, CreditCard } from 'lucide-react';
 import { notificationApi } from '@/api/endpoints';
-import { Card, EmptyState, Skeleton, Spinner } from '@/components/UI';
+import { Card, EmptyState, Skeleton } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { timeAgo } from '@/utils/format';
 import { useSocketEvent } from '@/hooks/useSocket';
+
+const PAGE_SIZE = 25;
 
 const ICONS: Record<string, any> = {
   REQUEST: Wrench,
@@ -20,9 +24,10 @@ const ICONS: Record<string, any> = {
 export function NotificationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: () => notificationApi.list(1, 50),
+    queryKey: ['notifications', page],
+    queryFn: () => notificationApi.list(page, PAGE_SIZE),
     refetchInterval: 10000,
   });
 
@@ -90,6 +95,9 @@ export function NotificationsPage() {
           })
         )}
       </div>
+      {data && data.total > PAGE_SIZE && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />
+      )}
     </div>
   );
 }

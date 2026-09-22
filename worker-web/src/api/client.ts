@@ -34,9 +34,15 @@ export function clearTokens() {
   setRefreshToken(null);
 }
 
+function getAcceptLanguage(): string {
+  if (typeof window === 'undefined') return 'en';
+  return localStorage.getItem('lsm_locale') || 'en';
+}
+
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  config.headers['Accept-Language'] = getAcceptLanguage();
   return config;
 });
 
@@ -81,13 +87,25 @@ apiClient.interceptors.response.use(
       }
     }
     const message = err.response?.data?.error?.message ?? 'Something went wrong';
-    if (err.response?.status !== 401) toast.error(message);
+    // Do not toast globally — each call site is responsible for showing errors
+    // so we don't end up with duplicate toasts.
     return Promise.reject(err);
   },
 );
 
 export function extractData<T>(res: any): T {
   return res.data.data as T;
+}
+
+export function extractError(err: any): string {
+  const details = err?.response?.data?.error?.details;
+  if (Array.isArray(details) && details.length > 0) {
+    const first = details[0];
+    const path = Array.isArray(first.path) ? first.path.join('.') : '';
+    const msg = first.message ?? 'Invalid value';
+    return path ? `${path}: ${msg}` : msg;
+  }
+  return err?.response?.data?.error?.message ?? err?.message ?? 'Unknown error';
 }
 
 export { setAccessToken, setRefreshToken };

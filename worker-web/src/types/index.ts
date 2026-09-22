@@ -34,8 +34,10 @@ export interface WorkerProfile {
   ratingCount: number;
   responseRate: number;
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+  portfolio?: Array<{ id: string; imageUrl: string; caption: string | null }>;
   user?: User;
   services?: WorkerService[];
+  availability?: WorkerAvailability[];
 }
 
 export interface Service {
@@ -158,8 +160,9 @@ export interface Review {
   id: string;
   rating: number;
   comment: string | null;
+  photos: string[];
   createdAt: string;
-  author: { fullName: string; avatarUrl: string | null };
+  author?: { id: string; fullName: string; avatarUrl: string | null };
 }
 
 export interface Conversation {

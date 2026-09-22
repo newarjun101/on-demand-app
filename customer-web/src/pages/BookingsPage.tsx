@@ -1,16 +1,21 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { bookingApi } from '@/api/endpoints';
 import { Badge, Card, EmptyState, Skeleton } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { BOOKING_STATUS_LABELS } from '@/utils/statuses';
 import { formatDate, formatMmk } from '@/utils/format';
 import { Avatar } from '@/components/UI';
 import { Wrench, MapPin, CalendarDays } from 'lucide-react';
 
+const PAGE_SIZE = 20;
+
 export function BookingsPage() {
+  const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({
-    queryKey: ['my-bookings'],
-    queryFn: () => bookingApi.listMine(1, 50),
+    queryKey: ['my-bookings', page],
+    queryFn: () => bookingApi.listMine(page, PAGE_SIZE),
   });
 
   return (
@@ -53,6 +58,9 @@ export function BookingsPage() {
           ))
         )}
       </div>
+      {data && data.total > PAGE_SIZE && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />
+      )}
     </div>
   );
 }

@@ -3,30 +3,31 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Filter, MapPin, Wrench } from 'lucide-react';
 import { requestApi } from '@/api/endpoints';
-import { Badge, Button, Card, EmptyState, Input, Select, Skeleton } from '@/components/UI';
+import { Badge, Button, Card, EmptyState, Input, Skeleton } from '@/components/UI';
 import { Avatar } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { formatMmk, timeAgo } from '@/utils/format';
 
+const PAGE_SIZE = 20;
+
 export function RequestsPage() {
+  const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
-  const [sort, setSort] = useState('RECOMMENDED');
   const { data, isLoading } = useQuery({
-    queryKey: ['request-feed', { q, sort }],
-    queryFn: () => requestApi.feed(1, 50),
+    queryKey: ['request-feed', page],
+    queryFn: () => requestApi.feed(page, PAGE_SIZE),
   });
 
   const items = (data?.items ?? []).filter((r) => !q || `${r.service.name} ${r.description} ${r.city}`.toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Job requests near you</h1>
           <p className="text-sm text-gray-500 mt-1">{data?.total ?? 0} open requests</p>
         </div>
-        <div className="flex gap-2">
-          <Input placeholder="Search requests" value={q} onChange={(e) => setQ(e.target.value)} />
-        </div>
+        <Input placeholder="Search requests" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {isLoading ? (
@@ -67,6 +68,9 @@ export function RequestsPage() {
             </Card>
           ))}
         </div>
+      )}
+      {data && data.total > PAGE_SIZE && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />
       )}
     </div>
   );

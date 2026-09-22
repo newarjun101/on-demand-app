@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { workerService } from '../services/worker.service';
+import { eventService } from '../services/event.service';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import {
@@ -19,6 +20,19 @@ export const workerRouter = Router();
 workerRouter.get('/', validate(workerSearchSchema, 'query'), async (req: any, res, next) => {
   try {
     const data = await workerService.search(req.query);
+    res.json(ok(data));
+  } catch (e) { next(e); }
+});
+
+// Personalised "Recommended for you" feed (customer-only).
+workerRouter.get('/recommendations', authenticate(), requireRole('CUSTOMER'), async (req: any, res, next) => {
+  try {
+    const page = Number(req.query.page ?? 1);
+    const pageSize = Number(req.query.pageSize ?? 8);
+    const data = await eventService.recommendations(req.user!.sub, page, pageSize, {
+      latitude: req.query.latitude != null ? Number(req.query.latitude) : undefined,
+      longitude: req.query.longitude != null ? Number(req.query.longitude) : undefined,
+    });
     res.json(ok(data));
   } catch (e) { next(e); }
 });
@@ -82,6 +96,23 @@ workerRouter.post('/me/location', authenticate(), requireRole('WORKER'), async (
     }
     const data = await workerService.updateLiveLocation(req.user!.sub, lat, lng);
     res.json(ok(data));
+  } catch (e) { next(e); }
+});
+
+// Portfolio
+workerRouter.post('/me/portfolio', authenticate(), requireRole('WORKER'), async (req, res, next) => {
+  try {
+    const { imageUrl, caption } = req.body;
+    if (!imageUrl) return res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'imageUrl required' } });
+    const data = await workerService.addPortfolioImage(req.user!.sub, imageUrl, caption);
+    res.status(201).json(ok(data));
+  } catch (e) { next(e); }
+});
+
+workerRouter.delete('/me/portfolio/:imageId', authenticate(), requireRole('WORKER'), async (req, res, next) => {
+  try {
+    await workerService.removePortfolioImage(req.user!.sub, req.params.imageId);
+    res.json(ok({}));
   } catch (e) { next(e); }
 });
 

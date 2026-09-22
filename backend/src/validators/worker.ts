@@ -55,8 +55,17 @@ export const upsertAvailabilitySchema = z.object({
           'SUNDAY',
         ]),
         isAvailable: z.boolean(),
-        startTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
-        endTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+        startTime: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+        endTime: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+        slots: z
+          .array(
+            z.object({
+              startTime: z.string().regex(/^\d{2}:\d{2}$/),
+              endTime: z.string().regex(/^\d{2}:\d{2}$/),
+            }),
+          )
+          .max(6)
+          .optional(),
       }),
     )
     .max(7),

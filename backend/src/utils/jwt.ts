@@ -6,7 +6,7 @@ export interface JwtPayload {
   sub: string;
   role: Role;
   email?: string | null;
-  app?: 'CUSTOMER_WEB' | 'WORKER_WEB';
+  app?: 'CUSTOMER_WEB' | 'WORKER_WEB' | 'ADMIN_WEB';
 }
 
 export interface RefreshPayload {

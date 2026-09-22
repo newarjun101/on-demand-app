@@ -7,7 +7,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: JwtPayload;
-      appOrigin?: 'CUSTOMER_WEB' | 'WORKER_WEB';
+      appOrigin?: 'CUSTOMER_WEB' | 'WORKER_WEB' | 'ADMIN_WEB';
     }
   }
 }
@@ -84,8 +84,10 @@ export function detectOrigin(): RequestHandler {
     const origin = req.headers.origin;
     if (origin && origin.includes('5174')) req.appOrigin = 'WORKER_WEB';
     else if (origin && origin.includes('5173')) req.appOrigin = 'CUSTOMER_WEB';
+    else if (origin && origin.includes('5176')) req.appOrigin = 'ADMIN_WEB';
     else if (req.headers['x-app-origin'] === 'WORKER_WEB') req.appOrigin = 'WORKER_WEB';
     else if (req.headers['x-app-origin'] === 'CUSTOMER_WEB') req.appOrigin = 'CUSTOMER_WEB';
+    else if (req.headers['x-app-origin'] === 'ADMIN_WEB') req.appOrigin = 'ADMIN_WEB';
     next();
   };
 }

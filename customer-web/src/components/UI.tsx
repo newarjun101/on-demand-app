@@ -1,5 +1,7 @@
-import { ReactNode } from 'react';
+import * as React from 'react';
+import { ReactNode, forwardRef } from 'react';
 import clsx from 'clsx';
+import { resolveImageUrl } from '@/utils/format';
 
 export function Button({
   children,
@@ -46,61 +48,69 @@ export function Card({ children, className, onClick }: { children: ReactNode; cl
   );
 }
 
-export function Input(props: React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }) {
-  const { label, error, className, ...rest } = props;
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
-      <input
-        {...rest}
-        className={clsx(
-          'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
-          error ? 'border-red-400' : 'border-gray-300',
-          className,
-        )}
-      />
-      {error && <span className="text-xs text-red-600">{error}</span>}
-    </div>
-  );
-}
+export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string }>(
+  function Input({ label, error, className, ...rest }, ref) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+        <input
+          ref={ref}
+          {...rest}
+          className={clsx(
+            'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
+            error ? 'border-red-400' : 'border-gray-300',
+            className,
+          )}
+        />
+        {error && <span className="text-xs text-red-600">{error}</span>}
+      </div>
+    );
+  },
+);
 
-export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }) {
-  const { label, error, className, ...rest } = props;
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
-      <textarea
-        {...rest}
-        className={clsx(
-          'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
-          error ? 'border-red-400' : 'border-gray-300',
-          className,
-        )}
-      />
-      {error && <span className="text-xs text-red-600">{error}</span>}
-    </div>
-  );
-}
+export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string }>(
+  function Textarea({ label, error, className, ...rest }, ref) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+        <textarea
+          ref={ref}
+          {...rest}
+          className={clsx(
+            'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
+            error ? 'border-red-400' : 'border-gray-300',
+            className,
+          )}
+        />
+        {error && <span className="text-xs text-red-600">{error}</span>}
+      </div>
+    );
+  },
+);
 
-export function Select({ label, error, options, ...rest }: React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string; error?: string; options: { value: string; label: string }[] }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
-      <select
-        {...rest}
-        className={clsx(
-          'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white',
-          error ? 'border-red-400' : 'border-gray-300',
-        )}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      {error && <span className="text-xs text-red-600">{error}</span>}
-    </div>
-  );
-}
+export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string; error?: string; options: { value: string; label: string }[] }>(
+  function Select({ label, error, options, className, ...rest }, ref) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+        <select
+          ref={ref}
+          {...rest}
+          className={clsx(
+            'w-full px-3.5 py-2.5 border rounded-lg outline-none transition focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white',
+            error ? 'border-red-400' : 'border-gray-300',
+            className,
+          )}
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        {error && <span className="text-xs text-red-600">{error}</span>}
+      </div>
+    );
+  },
+);
 
 export function Badge({ children, color = 'primary' }: { children: ReactNode; color?: 'primary' | 'green' | 'gray' | 'yellow' | 'red' }) {
   const colors = {
@@ -154,8 +164,9 @@ export function Avatar({ src, name, size = 40 }: { src: string | null | undefine
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join('') || '?';
-  return src ? (
-    <img src={src} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover bg-gray-200" />
+  const resolved = resolveImageUrl(src);
+  return resolved ? (
+    <img src={resolved} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover bg-gray-200" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
   ) : (
     <div
       style={{ width: size, height: size, fontSize: size / 2.5 }}

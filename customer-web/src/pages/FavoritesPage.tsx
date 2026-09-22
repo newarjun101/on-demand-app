@@ -1,18 +1,21 @@
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { favoriteApi, workerApi } from '@/api/endpoints';
+import { favoriteApi } from '@/api/endpoints';
 import { Button, Card, EmptyState, Skeleton } from '@/components/UI';
 import { Avatar, StarRating } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { formatMmk } from '@/utils/format';
-import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+
+const PAGE_SIZE = 20;
 
 export function FavoritesPage() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({
-    queryKey: ['favorites'],
-    queryFn: favoriteApi.list,
+    queryKey: ['favorites', page],
+    queryFn: () => favoriteApi.list(), // backend doesn't paginate favorites; if it did, add (page, PAGE_SIZE)
   });
 
   if (!user) {

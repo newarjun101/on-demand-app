@@ -41,6 +41,7 @@ export const workerService = {
         },
         services: { include: { service: { include: { category: true } } } },
         portfolio: true,
+        availability: true,
       },
     });
     if (!profile) throw errors.notFound('Worker not found');
@@ -87,28 +88,30 @@ export const workerService = {
     if (emergency) where.emergencyAvailable = true;
     if (verifiedOnly) where.verificationStatus = 'APPROVED';
 
-    if (service || category) {
-      where.services = {
-        some: {
+    if (service || category || maxPrice !== undefined) {
+      const serviceClauses: any[] = [];
+      if (service || category) {
+        serviceClauses.push({
           service: {
             isActive: true,
             ...(service ? { slug: service } : undefined),
             ...(category ? { category: { slug: category } } : undefined),
           },
-        },
-      };
-    }
-
-    if (maxPrice !== undefined) {
-      where.services = {
-        some: {
+        });
+      }
+      if (maxPrice !== undefined) {
+        serviceClauses.push({
           OR: [
             { startingPrice: { lte: maxPrice } },
             { hourlyRate: { lte: maxPrice } },
             { fixedPrice: { lte: maxPrice } },
           ],
-        },
-      };
+        });
+      }
+      // If we have one clause, use it directly. If multiple, wrap in AND.
+      where.services = serviceClauses.length === 1
+        ? { some: serviceClauses[0] }
+        : { some: { AND: serviceClauses } };
     }
 
     const [total, profiles] = await Promise.all([
@@ -122,12 +125,13 @@ export const workerService = {
           },
           portfolio: { take: 3 },
         },
-        orderBy: { ratingAverage: 'desc' },
+        orderBy: [{ isBoosted: 'desc' }, { ratingAverage: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
     ]);
 
+    const now = Date.now();
     let items = profiles.map((p) => {
       let distanceKmValue: number | null = null;
       if (latitude !== undefined && longitude !== undefined && p.latitude && p.longitude) {
@@ -137,6 +141,7 @@ export const workerService = {
         .map((s) => s.startingPrice ?? s.fixedPrice ?? s.hourlyRate ?? 0)
         .filter((n) => n > 0);
       const minPrice = startingPrice.length ? Math.min(...startingPrice) : null;
+      const isBoosted = p.isBoosted && p.boostExpiresAt != null && new Date(p.boostExpiresAt).getTime() > now;
 
       return {
         id: p.id,
@@ -144,6 +149,7 @@ export const workerService = {
         name: p.user.fullName,
         avatarUrl: p.user.avatarUrl,
         verified: p.verificationStatus === 'APPROVED',
+        boosted: isBoosted,
         ratingAverage: p.ratingAverage,
         ratingCount: p.ratingCount,
         experienceYears: p.experienceYears,
@@ -167,31 +173,31 @@ export const workerService = {
     });
 
     // Sorting
-    items.sort((a, b) => {
-      switch (sort) {
-        case 'NEAREST':
-          return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-        case 'HIGHEST_RATED':
-          return (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0);
-        case 'LOWEST_PRICE':
-          return (a.startingPrice ?? Infinity) - (b.startingPrice ?? Infinity);
-        case 'MOST_EXPERIENCED':
-          return (b.experienceYears ?? 0) - (a.experienceYears ?? 0);
-        case 'RECOMMENDED':
-        default:
-          const aScore =
-            (a.ratingAverage ?? 0) * 2 +
-            Math.max(0, 5 - (a.distanceKm ?? 10)) * 0.5 +
-            Math.min(a.experienceYears ?? 0, 10) * 0.3 +
-            Math.min(a.completedJobs ?? 0, 50) * 0.05;
-          const bScore =
-            (b.ratingAverage ?? 0) * 2 +
-            Math.max(0, 5 - (b.distanceKm ?? 10)) * 0.5 +
-            Math.min(b.experienceYears ?? 0, 10) * 0.3 +
-            Math.min(b.completedJobs ?? 0, 50) * 0.05;
-          return bScore - aScore;
-      }
-    });
+    if (sort === 'RECOMMENDED') {
+      items.sort((a, b) => {
+        // Boosted workers first regardless of secondary sort.
+        if ((a as any).boosted && !(b as any).boosted) return -1;
+        if (!(a as any).boosted && (b as any).boosted) return 1;
+        const aScore =
+          (a.ratingAverage ?? 0) * 2 +
+          Math.max(0, 5 - (a.distanceKm ?? 10)) * 0.5 +
+          Math.min(a.experienceYears ?? 0, 10) * 0.3 +
+          Math.min(a.completedJobs ?? 0, 50) * 0.05;
+        const bScore =
+          (b.ratingAverage ?? 0) * 2 +
+          Math.max(0, 5 - (b.distanceKm ?? 10)) * 0.5 +
+          Math.min(b.experienceYears ?? 0, 10) * 0.3 +
+          Math.min(b.completedJobs ?? 0, 50) * 0.05;
+        return bScore - aScore;
+      });
+    } else {
+      // For other sorts, still keep boosted on top
+      items.sort((a, b) => {
+        if ((a as any).boosted && !(b as any).boosted) return -1;
+        if (!(a as any).boosted && (b as any).boosted) return 1;
+        return 0;
+      });
+    }
 
     return { items, total, page, pageSize };
   },
@@ -252,19 +258,26 @@ export const workerService = {
   async upsertAvailability(userId: string, input: z.infer<typeof upsertAvailabilitySchema>) {
     const profile = await prisma.workerProfile.findUnique({ where: { userId } });
     if (!profile) throw errors.notFound('Worker profile not found');
-    const ops = input.entries.map((e) =>
-        prisma.workerAvailability.upsert({
-          where: { workerProfileId_day: { workerProfileId: profile.id, day: e.day as any } },
-          update: { isAvailable: e.isAvailable, startTime: e.startTime, endTime: e.endTime },
-          create: {
-            workerProfileId: profile.id,
-            day: e.day as any,
-            isAvailable: e.isAvailable,
-            startTime: e.startTime,
-            endTime: e.endTime,
-          },
-        }),
-      );
+    const ops = input.entries.map((e) => {
+      const data: any = {
+        isAvailable: e.isAvailable,
+        startTime: e.startTime,
+        endTime: e.endTime,
+      };
+      if ((e as any).slots !== undefined) data.slots = (e as any).slots;
+      return prisma.workerAvailability.upsert({
+        where: { workerProfileId_day: { workerProfileId: profile.id, day: e.day as any } },
+        update: data,
+        create: {
+          workerProfileId: profile.id,
+          day: e.day as any,
+          isAvailable: e.isAvailable,
+          startTime: e.startTime,
+          endTime: e.endTime,
+          slots: (e as any).slots ?? undefined,
+        },
+      });
+    });
     const result = await prisma.$transaction(ops);
     return result;
   },
@@ -294,5 +307,21 @@ export const workerService = {
       where: { userId },
       data: { liveLatitude: lat, liveLongitude: lng, liveLocationAt: new Date() },
     });
+  },
+
+  async addPortfolioImage(userId: string, imageUrl: string, caption?: string) {
+    const profile = await prisma.workerProfile.findUnique({ where: { userId } });
+    if (!profile) throw errors.notFound('Worker profile not found');
+    return prisma.portfolioImage.create({
+      data: { workerProfileId: profile.id, imageUrl, caption },
+    });
+  },
+
+  async removePortfolioImage(userId: string, imageId: string) {
+    const profile = await prisma.workerProfile.findUnique({ where: { userId } });
+    if (!profile) throw errors.notFound('Worker profile not found');
+    const img = await prisma.portfolioImage.findUnique({ where: { id: imageId } });
+    if (!img || img.workerProfileId !== profile.id) throw errors.notFound('Image not found');
+    await prisma.portfolioImage.delete({ where: { id: imageId } });
   },
 };

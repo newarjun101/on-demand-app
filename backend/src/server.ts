@@ -31,6 +31,8 @@ async function main() {
     console.log(`  customer web allowed: ${env.customerWebUrl}`);
     // eslint-disable-next-line no-console
     console.log(`  worker web allowed:   ${env.workerWebUrl}`);
+    // eslint-disable-next-line no-console
+    console.log(`  admin web allowed:    ${env.adminWebUrl}`);
   });
 
   const shutdown = async (signal: string) => {

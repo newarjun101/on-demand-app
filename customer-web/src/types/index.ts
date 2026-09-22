@@ -40,6 +40,7 @@ export interface WorkerCardData {
   name: string;
   avatarUrl: string | null;
   verified: boolean;
+  boosted?: boolean;
   ratingAverage: number;
   ratingCount: number;
   experienceYears: number;
@@ -193,6 +194,7 @@ export interface Review {
   comment: string | null;
   photos: string[];
   createdAt: string;
+  author?: { id: string; fullName: string; avatarUrl: string | null };
 }
 
 export interface Conversation {

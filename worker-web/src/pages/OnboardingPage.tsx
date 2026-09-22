@@ -8,10 +8,12 @@ import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { categoryApi, workerApi } from '@/api/endpoints';
 import { Badge, Button, Card, Input, Spinner, Textarea } from '@/components/UI';
+import { useI18n } from '@/i18n';
 
 type Step = 'profile' | 'services' | 'availability' | 'review';
 
 export function OnboardingPage() {
+  const { t } = useI18n();
   const { user, profile, refresh } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -26,16 +28,16 @@ export function OnboardingPage() {
   if (!user) return null;
 
   const steps: Array<{ key: Step; label: string; icon: any }> = [
-    { key: 'profile', label: 'Profile', icon: Camera },
-    { key: 'services', label: 'Services & pricing', icon: Banknote },
-    { key: 'availability', label: 'Availability', icon: Clock },
-    { key: 'review', label: 'Submit for review', icon: BadgeCheck },
+    { key: 'profile',      label: t('onboarding.stepProfile'),     icon: Camera },
+    { key: 'services',     label: t('onboarding.stepServices'),    icon: Banknote },
+    { key: 'availability', label: t('onboarding.stepAvailability'), icon: Clock },
+    { key: 'review',       label: t('onboarding.stepReview'),      icon: BadgeCheck },
   ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">Welcome, {user.fullName.split(' ')[0]} 👋</h1>
-      <p className="text-sm text-gray-500 mt-1">Complete these steps to start receiving job requests.</p>
+      <h1 className="text-2xl font-bold text-gray-900">{t('onboarding.welcome', { name: user.fullName.split(' ')[0] })} 👋</h1>
+      <p className="text-sm text-gray-500 mt-1">{t('onboarding.subtitle')}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {steps.map((s, i) => {
@@ -67,7 +69,8 @@ export function OnboardingPage() {
 }
 
 function ProfileStep({ onNext }: { onNext: () => void }) {
-  const { user, profile, refresh } = useAuth();
+  const { t } = useI18n();
+  const { user: _user, profile, refresh } = useAuth();
   const [loading, setLoading] = useState(false);
   const [lat, setLat] = useState<number | ''>(profile?.latitude ?? '');
   const [lng, setLng] = useState<number | ''>(profile?.longitude ?? '');
@@ -83,7 +86,7 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
   function detectLocation() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); toast.success('Location captured'); },
+      (pos) => { setLat(pos.coords.latitude); setLng(pos.coords.longitude); toast.success(t('profile.useLocation') + ' ✓'); },
       (err) => toast.error(err.message),
     );
   }
@@ -100,34 +103,34 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
         longitude: lng === '' ? undefined : Number(lng),
       });
       await refresh();
-      toast.success('Profile saved');
+      toast.success(t('onboarding.profileSaved'));
       onNext();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? 'Save failed');
+      toast.error(e?.response?.data?.error?.message ?? t('errors.generic'));
     } finally { setLoading(false); }
   }
 
   return (
     <Card className="p-6">
-      <h2 className="font-semibold text-gray-900">Tell us about yourself</h2>
-      <p className="text-sm text-gray-500 mt-1">This information will be shown to customers.</p>
+      <h2 className="font-semibold text-gray-900">{t('onboarding.tellUsAboutYourself')}</h2>
+      <p className="text-sm text-gray-500 mt-1">{t('onboarding.shownToCustomers')}</p>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-        <Textarea label="Bio" rows={3} placeholder="What services do you offer? Any special skills?" {...register('bio')} />
+        <Textarea label={t('profile.aboutMe')} rows={3} placeholder={t('onboarding.bioPlaceholder')} {...register('bio')} />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input label="Experience (years)" type="number" {...register('experienceYears')} />
-          <Input label="Service radius (km)" type="number" {...register('serviceRadiusKm')} />
+          <Input label={t('dashboard.experience')} type="number" {...register('experienceYears')} />
+          <Input label={t('dashboard.radius')} type="number" {...register('serviceRadiusKm')} />
           <label className="flex items-center gap-2 mt-6">
             <input type="checkbox" {...register('emergencyAvailable')} />
-            <span className="text-sm">24/7 emergency service</span>
+            <span className="text-sm">{t('onboarding.emergencyService')}</span>
           </label>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Latitude" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value as any)} />
-          <Input label="Longitude" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value as any)} />
+          <Input label={t('profile.coordinates')} type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value as any)} />
+          <Input label={t('common.max')} type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value as any)} />
         </div>
-        <Button type="button" variant="outline" onClick={detectLocation}><MapPin size={14} className="mr-2"/>Detect my location</Button>
+        <Button type="button" variant="outline" onClick={detectLocation}><MapPin size={14} className="mr-2"/>{t('profile.useLocation')}</Button>
         <div className="flex justify-end">
-          <Button type="submit" disabled={loading}>{loading ? <Spinner size={16} /> : 'Save & continue'}</Button>
+          <Button type="submit" disabled={loading}>{loading ? <Spinner size={16} /> : t('onboarding.saveAndContinue')}</Button>
         </div>
       </form>
     </Card>
@@ -135,6 +138,7 @@ function ProfileStep({ onNext }: { onNext: () => void }) {
 }
 
 function ServicesStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const { t } = useI18n();
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoryApi.list });
   const queryClient = useQueryClient();
   const { profile, refresh } = useAuth();
@@ -142,11 +146,11 @@ function ServicesStep({ onNext, onBack }: { onNext: () => void; onBack: () => vo
 
   const upsertMut = useMutation({
     mutationFn: workerApi.upsertService,
-    onSuccess: () => { toast.success('Service saved'); queryClient.invalidateQueries({ queryKey: ['worker-profile'] }); refresh(); },
+    onSuccess: () => { toast.success(t('services.title')); queryClient.invalidateQueries({ queryKey: ['worker-profile'] }); refresh(); },
   });
   const removeMut = useMutation({
     mutationFn: (serviceId: string) => workerApi.removeService(serviceId),
-    onSuccess: () => { toast.success('Service removed'); queryClient.invalidateQueries({ queryKey: ['worker-profile'] }); refresh(); },
+    onSuccess: () => { toast.success(t('common.remove')); queryClient.invalidateQueries({ queryKey: ['worker-profile'] }); refresh(); },
   });
 
   function getMyServiceFor(serviceId: string) {
@@ -155,8 +159,8 @@ function ServicesStep({ onNext, onBack }: { onNext: () => void; onBack: () => vo
 
   return (
     <Card className="p-6">
-      <h2 className="font-semibold text-gray-900">Your services and pricing</h2>
-      <p className="text-sm text-gray-500 mt-1">Pick the services you offer and set your pricing.</p>
+      <h2 className="font-semibold text-gray-900">{t('onboarding.yourServicesAndPricing')}</h2>
+      <p className="text-sm text-gray-500 mt-1">{t('onboarding.pickServicesHint')}</p>
 
       <div className="mt-4 space-y-3">
         {(categories ?? []).flatMap((c) => c.services.map((s) => ({ ...s, categoryName: c.name }))).map((s) => {
@@ -177,15 +181,16 @@ function ServicesStep({ onNext, onBack }: { onNext: () => void; onBack: () => vo
       </div>
 
       <div className="mt-6 flex justify-between">
-        <Button variant="ghost" onClick={onBack}>Back</Button>
-        <Button onClick={onNext} disabled={myServices.length === 0}>Continue</Button>
+        <Button variant="ghost" onClick={onBack}>{t('common.back')}</Button>
+        <Button onClick={onNext} disabled={myServices.length === 0}>{t('onboarding.continue')}</Button>
       </div>
-      {myServices.length === 0 && <p className="text-xs text-yellow-700 mt-2 text-right">Add at least one service to continue.</p>}
+      {myServices.length === 0 && <p className="text-xs text-yellow-700 mt-2 text-right">{t('onboarding.addAtLeastOneService')}</p>}
     </Card>
   );
 }
 
 function ServiceRow({ serviceId, name, categoryName, initial, onSave, onRemove, saving }: { serviceId: string; name: string; categoryName: string; initial: any; onSave: (input: any) => void; onRemove: () => void; saving: boolean }) {
+  const { t } = useI18n();
   const [pricingType, setPricingType] = useState(initial?.pricingType ?? 'STARTING_FROM');
   const [startingPrice, setStartingPrice] = useState<number | ''>(initial?.startingPrice ?? '');
   const [hourlyRate, setHourlyRate] = useState<number | ''>(initial?.hourlyRate ?? '');
@@ -199,31 +204,31 @@ function ServiceRow({ serviceId, name, categoryName, initial, onSave, onRemove, 
           <div className="font-medium text-gray-900">{name}</div>
           <div className="text-xs text-gray-500">{categoryName}</div>
         </div>
-        {initial && <Badge color="green">Added</Badge>}
+        {initial && <Badge color="green">{t('onboarding.added')}</Badge>}
       </div>
       <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
         <div>
-          <label className="text-xs text-gray-500">Pricing type</label>
+          <label className="text-xs text-gray-500">{t('onboarding.pricingType')}</label>
           <select value={pricingType} onChange={(e) => setPricingType(e.target.value as any)} className="mt-1 w-full px-2 py-1.5 border rounded-lg">
-            <option value="FIXED">Fixed price</option>
-            <option value="STARTING_FROM">Starting from</option>
-            <option value="HOURLY">Hourly rate</option>
-            <option value="QUOTE_REQUIRED">Quote required</option>
+            <option value="FIXED">{t('onboarding.fixedPrice')}</option>
+            <option value="STARTING_FROM">{t('onboarding.startingFrom')}</option>
+            <option value="HOURLY">{t('onboarding.hourlyRate')}</option>
+            <option value="QUOTE_REQUIRED">{t('onboarding.quoteRequired')}</option>
           </select>
         </div>
         {pricingType === 'FIXED' && (
-          <Input label="Fixed price (MMK)" type="number" value={fixedPrice} onChange={(e) => setFixedPrice(e.target.value as any)} />
+          <Input label={t('onboarding.fixedPriceLabel')} type="number" value={fixedPrice} onChange={(e) => setFixedPrice(e.target.value as any)} />
         )}
         {pricingType === 'STARTING_FROM' && (
-          <Input label="Starting from (MMK)" type="number" value={startingPrice} onChange={(e) => setStartingPrice(e.target.value as any)} />
+          <Input label={t('onboarding.startingFromLabel')} type="number" value={startingPrice} onChange={(e) => setStartingPrice(e.target.value as any)} />
         )}
         {pricingType === 'HOURLY' && (
-          <Input label="Hourly rate (MMK)" type="number" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value as any)} />
+          <Input label={t('onboarding.hourlyRateLabel')} type="number" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value as any)} />
         )}
-        <Input label="Estimated minutes" type="number" value={estimatedMinutes} onChange={(e) => setEstimatedMinutes(e.target.value as any)} />
+        <Input label={t('onboarding.estimatedMinutes')} type="number" value={estimatedMinutes} onChange={(e) => setEstimatedMinutes(e.target.value as any)} />
       </div>
       <div className="mt-3 flex justify-end gap-2">
-        {initial && <Button variant="ghost" size="sm" onClick={onRemove}>Remove</Button>}
+        {initial && <Button variant="ghost" size="sm" onClick={onRemove}>{t('common.remove')}</Button>}
         <Button size="sm" disabled={saving} onClick={() => onSave({
           pricingType,
           startingPrice: startingPrice === '' ? undefined : Number(startingPrice),
@@ -231,7 +236,7 @@ function ServiceRow({ serviceId, name, categoryName, initial, onSave, onRemove, 
           fixedPrice: fixedPrice === '' ? undefined : Number(fixedPrice),
           estimatedMinutes: estimatedMinutes === '' ? undefined : Number(estimatedMinutes),
         })}>
-          {saving ? <Spinner size={14} /> : initial ? 'Update' : 'Add'}
+          {saving ? <Spinner size={14} /> : initial ? t('common.update') : t('common.add')}
         </Button>
       </div>
     </div>
@@ -239,6 +244,7 @@ function ServiceRow({ serviceId, name, categoryName, initial, onSave, onRemove, 
 }
 
 function AvailabilityStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const { t } = useI18n();
   const { profile, refresh } = useAuth();
   const [entries, setEntries] = useState(() => {
     const days = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
@@ -254,17 +260,17 @@ function AvailabilityStep({ onNext, onBack }: { onNext: () => void; onBack: () =
     try {
       await workerApi.setAvailability(entries);
       await refresh();
-      toast.success('Availability saved');
+      toast.success(t('onboarding.availabilitySaved'));
       onNext();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? 'Save failed');
+      toast.error(e?.response?.data?.error?.message ?? t('errors.generic'));
     } finally { setSaving(false); }
   }
 
   return (
     <Card className="p-6">
-      <h2 className="font-semibold text-gray-900">When are you available?</h2>
-      <p className="text-sm text-gray-500 mt-1">Set working hours for each day.</p>
+      <h2 className="font-semibold text-gray-900">{t('onboarding.whenAvailable')}</h2>
+      <p className="text-sm text-gray-500 mt-1">{t('onboarding.setHoursHint')}</p>
       <div className="mt-4 space-y-2">
         {entries.map((e, i) => (
           <div key={e.day} className="flex items-center gap-3 p-3 border rounded-lg">
@@ -273,7 +279,7 @@ function AvailabilityStep({ onNext, onBack }: { onNext: () => void; onBack: () =
               checked={e.isAvailable}
               onChange={(ev) => setEntries(entries.map((x, idx) => idx === i ? { ...x, isAvailable: ev.target.checked } : x))}
             />
-            <div className="font-medium w-24">{e.day.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}</div>
+            <div className="font-medium w-24">{t(`days.${e.day.toLowerCase()}`)}</div>
             <input
               type="time"
               disabled={!e.isAvailable}
@@ -281,7 +287,7 @@ function AvailabilityStep({ onNext, onBack }: { onNext: () => void; onBack: () =
               onChange={(ev) => setEntries(entries.map((x, idx) => idx === i ? { ...x, startTime: ev.target.value } : x))}
               className="px-2 py-1.5 border rounded-lg disabled:opacity-50"
             />
-            <span>to</span>
+            <span>{t('common.to')}</span>
             <input
               type="time"
               disabled={!e.isAvailable}
@@ -293,14 +299,15 @@ function AvailabilityStep({ onNext, onBack }: { onNext: () => void; onBack: () =
         ))}
       </div>
       <div className="mt-6 flex justify-between">
-        <Button variant="ghost" onClick={onBack}>Back</Button>
-        <Button onClick={save} disabled={saving}>{saving ? <Spinner size={16} /> : 'Save & continue'}</Button>
+        <Button variant="ghost" onClick={onBack}>{t('common.back')}</Button>
+        <Button onClick={save} disabled={saving}>{saving ? <Spinner size={16} /> : t('onboarding.saveAndContinue')}</Button>
       </div>
     </Card>
   );
 }
 
 function ReviewStep({ onSubmitted }: { onSubmitted: () => void }) {
+  const { t } = useI18n();
   const { profile } = useAuth();
   const status = profile?.verificationStatus;
 
@@ -309,26 +316,26 @@ function ReviewStep({ onSubmitted }: { onSubmitted: () => void }) {
       <div className="w-16 h-16 mx-auto rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
         <FileText size={28} />
       </div>
-      <h2 className="mt-4 text-xl font-bold text-gray-900">Submit for review</h2>
+      <h2 className="mt-4 text-xl font-bold text-gray-900">{t('onboarding.submitForReview')}</h2>
       <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">
-        Once you submit, our team will review your profile. You'll be able to receive jobs as soon as you're approved.
+        {t('onboarding.submitHint')}
       </p>
       <div className="mt-4">
         {status === 'PENDING' ? (
-          <Badge color="yellow">Review pending</Badge>
+          <Badge color="yellow">{t('onboarding.reviewPending')}</Badge>
         ) : status === 'APPROVED' ? (
-          <Badge color="green">Approved</Badge>
+          <Badge color="green">{t('onboarding.approved')}</Badge>
         ) : status === 'REJECTED' ? (
-          <Badge color="red">Rejected</Badge>
+          <Badge color="red">{t('onboarding.rejected')}</Badge>
         ) : null}
       </div>
       {status !== 'APPROVED' && (
         <p className="text-xs text-gray-500 mt-3">
-          In production, you'd upload ID / certificates here. For the MVP demo, workers are auto-approved by seeding.
+          {t('onboarding.mvpNote')}
         </p>
       )}
       <div className="mt-6">
-        <Button onClick={onSubmitted}>Go to dashboard</Button>
+        <Button onClick={onSubmitted}>{t('onboarding.goToDashboard')}</Button>
       </div>
     </Card>
   );

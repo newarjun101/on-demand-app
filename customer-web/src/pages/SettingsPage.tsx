@@ -5,11 +5,13 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { Card, Input, Button, Spinner } from '@/components/UI';
 import { userApi } from '@/api/endpoints';
+import { extractError } from '@/api/client';
+import { zStringRequired } from '@/utils/zod-helpers';
 
 const schema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(8),
-  confirm: z.string(),
+  currentPassword: zStringRequired('Enter your current password'),
+  newPassword: zStringRequired('New password must be at least 8 characters'),
+  confirm: zStringRequired('Please confirm your new password'),
 }).refine((d) => d.newPassword === d.confirm, { path: ['confirm'], message: 'Passwords do not match' });
 
 type FormValues = z.infer<typeof schema>;
@@ -25,7 +27,7 @@ export function SettingsPage() {
       toast.success('Password changed');
       reset();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? 'Update failed');
+      toast.error(extractError(e) ?? 'Update failed');
     } finally {
       setLoading(false);
     }

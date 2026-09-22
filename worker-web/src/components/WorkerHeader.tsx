@@ -1,9 +1,11 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { LogOut, LayoutDashboard, Inbox, Briefcase, MessageCircle, User as UserIcon, Wrench, Settings, Bell, BellOff } from 'lucide-react';
+import { LogOut, LayoutDashboard, Inbox, Briefcase, MessageCircle, User as UserIcon, Wrench, Settings, Bell, BellOff, Zap, BarChart3 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, Badge } from '@/components/UI';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { useI18n } from '@/i18n';
 import { useSocketEvent } from '@/hooks/useSocket';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
@@ -12,6 +14,7 @@ import toast from 'react-hot-toast';
 
 export function WorkerHeader() {
   const { user, profile, logout } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -21,7 +24,7 @@ export function WorkerHeader() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['worker-profile'] });
       queryClient.invalidateQueries({ queryKey: ['me'] });
-      toast.success('Status updated');
+      toast.success(t('common.save') + ' ✓');
     },
   });
 
@@ -45,10 +48,10 @@ export function WorkerHeader() {
   }
 
   const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/requests', label: 'Requests', icon: Inbox },
-    { to: '/jobs', label: 'Jobs', icon: Briefcase },
-    { to: '/messages', label: 'Messages', icon: MessageCircle },
+    { to: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { to: '/requests', label: t('nav.requests'), icon: Inbox },
+    { to: '/jobs', label: t('nav.jobs'), icon: Briefcase },
+    { to: '/messages', label: t('nav.messages'), icon: MessageCircle },
   ];
 
   const isOnline = profile?.isOnline ?? false;
@@ -64,7 +67,7 @@ export function WorkerHeader() {
             </div>
             <div>
               <div className="font-bold text-gray-900 leading-tight">Worker Pro</div>
-              <div className="text-[10px] text-gray-500 leading-tight">Manage your jobs</div>
+              <div className="text-[10px] text-gray-500 leading-tight">{t('nav.dashboard')}</div>
             </div>
           </Link>
 
@@ -84,6 +87,7 @@ export function WorkerHeader() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <LocaleSwitcher />
             <button
               onClick={() => statusMut.mutate(!isOnline)}
               className={clsx(
@@ -95,7 +99,7 @@ export function WorkerHeader() {
               title={isOnline ? 'Click to go offline' : 'Click to go online'}
             >
               {isOnline ? <Bell size={14} /> : <BellOff size={14} />}
-              {isOnline && isAccepting ? 'Accepting jobs' : isOnline ? 'Online (paused)' : 'Offline'}
+              {isOnline && isAccepting ? t('status.acceptingJobs') : isOnline ? t('status.online') + ' (' + t('home.searchPlaceholder') + ')' : t('status.offline')}
             </button>
 
             <Link to="/notifications" className="text-gray-500 hover:text-gray-900 relative">
@@ -110,17 +114,19 @@ export function WorkerHeader() {
                 <Avatar src={user?.avatarUrl} name={user?.fullName ?? ''} size={32} />
                 <span className="hidden sm:inline text-sm font-medium text-gray-700">{user?.fullName.split(' ')[0]}</span>
               </button>
-              {open && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-50">
-                  <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><UserIcon size={16} />Profile</Link>
-                  <Link to="/services" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><Wrench size={16} />My services</Link>
-                  <Link to="/availability" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><Settings size={16} />Availability</Link>
-                  <Link to="/earnings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">Earnings</Link>
-                  <Link to="/settings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">Settings</Link>
-                  <hr className="my-1" />
-                  <button onClick={handleLogout} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 text-red-600"><LogOut size={16} />Logout</button>
-                </div>
-              )}
+                {open && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-50">
+                    <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><UserIcon size={16} />{t('nav.profile')}</Link>
+                    <Link to="/services" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><Wrench size={16} />{t('nav.services')}</Link>
+                    <Link to="/availability" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><Settings size={16} />{t('nav.availability')}</Link>
+                    <Link to="/boost" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><Zap size={16} className="text-amber-500" />{t('nav.boost')}</Link>
+                    <Link to="/analytics" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><BarChart3 size={16} />{t('nav.analytics')}</Link>
+                    <Link to="/earnings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">{t('nav.earnings')}</Link>
+                    <Link to="/settings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">{t('nav.settings')}</Link>
+                    <hr className="my-1" />
+                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 text-red-600"><LogOut size={16} />{t('nav.logout')}</button>
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -135,7 +141,7 @@ export function WorkerHeader() {
         ))}
         <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
           <UserIcon size={20} />
-          Profile
+          {t('nav.profile')}
         </NavLink>
       </nav>
     </header>

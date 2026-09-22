@@ -3,6 +3,15 @@ export function formatMmk(amount: number | null | undefined): string {
   return `${amount.toLocaleString('en-US')} MMK`;
 }
 
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string)?.replace(/\/api$/, '') || 'http://localhost:4000';
+
+export function resolveImageUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+  return url;
+}
+
 export function timeAgo(iso: string | null | undefined): string {
   if (!iso) return '';
   const d = new Date(iso).getTime();

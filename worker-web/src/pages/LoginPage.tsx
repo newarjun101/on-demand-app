@@ -7,14 +7,17 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button, Card, Spinner } from '@/components/UI';
 import { Wrench, ArrowRight, Mail, Lock } from 'lucide-react';
+import { zStringRequired } from '@/utils/zod-helpers';
+import { useI18n } from '@/i18n';
 
 const schema = z.object({
-  identifier: z.string().min(3),
-  password: z.string().min(1),
+  identifier: zStringRequired('Enter your email or phone'),
+  password: zStringRequired('Enter your password'),
 });
 type FormValues = z.infer<typeof schema>;
 
 export function LoginPage() {
+  const { t } = useI18n();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -26,10 +29,10 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(v.identifier, v.password);
-      toast.success('Welcome back!');
+      toast.success(t('auth.welcomeBack') + '!');
       navigate(redirect);
     } catch (e: any) {
-      toast.error(e?.response?.data?.error?.message ?? 'Login failed');
+      toast.error(e?.response?.data?.error?.message ?? t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login('plumber@demo.com', 'Worker@123');
-      toast.success('Welcome!');
+      toast.success(t('auth.welcomeBack') + '!');
       navigate('/dashboard');
     } finally { setLoading(false); }
   }
@@ -53,12 +56,12 @@ export function LoginPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Worker Pro</h1>
-            <p className="text-sm text-gray-500">Get jobs near you</p>
+            <p className="text-sm text-gray-500">{t('home.heroSubtitle')}</p>
           </div>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">Email or phone</label>
+            <label className="text-sm font-medium text-gray-700">{t('auth.emailOrPhone')}</label>
             <div className="mt-1 relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input {...register('identifier')} className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand-500" placeholder="you@example.com" />
@@ -66,7 +69,7 @@ export function LoginPage() {
             {errors.identifier && <p className="text-xs text-red-600 mt-1">{errors.identifier.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Password</label>
+            <label className="text-sm font-medium text-gray-700">{t('auth.password')}</label>
             <div className="mt-1 relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input type="password" {...register('password')} className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-brand-500" placeholder="••••••••" />
@@ -74,17 +77,17 @@ export function LoginPage() {
             {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
           </div>
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? <Spinner size={16} /> : <>Log in <ArrowRight size={16} className="ml-1" /></>}
+            {loading ? <Spinner size={16} /> : <>{t('nav.login')} <ArrowRight size={16} className="ml-1" /></>}
           </Button>
           <button type="button" onClick={fillDemo} className="text-xs text-brand-700 hover:underline" disabled={loading}>
-            Use demo worker account (plumber@demo.com)
+            {t('auth.useDemoWorker')}
           </button>
         </form>
         <div className="mt-6 text-center text-sm text-gray-600">
-          New here? <Link to="/register" className="text-brand-700 font-medium hover:underline">Create an account</Link>
+          {t('auth.noAccount')} <Link to="/register" className="text-brand-700 font-medium hover:underline">{t('auth.createAccount')}</Link>
         </div>
         <div className="mt-4 text-center text-xs text-gray-400">
-          Looking to hire a worker? <a href="http://localhost:5173" className="text-brand-700 hover:underline">Customer app</a>
+          {t('auth.lookingToHire')} <a href="http://localhost:5173" className="text-brand-700 hover:underline">{t('auth.joinUs')}</a>
         </div>
       </Card>
     </div>

@@ -42,6 +42,7 @@ export const env = {
   corsOrigins: getCorsOrigins(),
   customerWebUrl: getEnv('CUSTOMER_WEB_URL', 'http://localhost:5173'),
   workerWebUrl: getEnv('WORKER_WEB_URL', 'http://localhost:5174'),
+  adminWebUrl: getEnv('ADMIN_WEB_URL', 'http://localhost:5176'),
   uploadDir: getEnv('UPLOAD_DIR', path.resolve(process.cwd(), 'uploads')),
   maxUploadMb: getEnvNumber('MAX_UPLOAD_MB', 8),
   platformCommissionPercent: getEnvNumber('PLATFORM_COMMISSION_PERCENT', 10),

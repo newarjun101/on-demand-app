@@ -1,16 +1,21 @@
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { chatApi } from '@/api/endpoints';
 import { Avatar, Card, EmptyState, Skeleton } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { timeAgo } from '@/utils/format';
 import { useAuth } from '@/contexts/AuthContext';
+
+const PAGE_SIZE = 30;
 
 export function ConversationsListPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: chatApi.listConversations,
+    queryKey: ['conversations', page],
+    queryFn: () => chatApi.listConversations(),
     refetchInterval: 8000,
   });
 
@@ -51,6 +56,9 @@ export function ConversationsListPage() {
           })
         )}
       </div>
+      {data && data.length > PAGE_SIZE && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onChange={setPage} />
+      )}
     </div>
   );
 }

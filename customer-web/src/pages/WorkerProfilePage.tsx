@@ -1,16 +1,18 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BadgeCheck, Heart, MapPin, MessageCircle, Phone, Star, CalendarDays, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { workerApi } from '@/api/endpoints';
+import { workerApi, eventApi } from '@/api/endpoints';
 import { Avatar, Badge, Button, Card, EmptyState, Skeleton, Spinner, StarRating } from '@/components/UI';
-import { formatMmk } from '@/utils/format';
+import { formatMmk, resolveImageUrl } from '@/utils/format';
 import { useAuth } from '@/contexts/AuthContext';
-import { chatApi } from '@/api/endpoints';
+import { chatApi, favoriteApi } from '@/api/endpoints';
 
 export function WorkerProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const source = (searchParams.get('src') as 'boost' | 'search' | 'category' | 'home' | 'profile' | 'direct' | 'favorites' | 'requests' | 'recommendations' | null) ?? 'direct';
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -21,14 +23,31 @@ export function WorkerProfilePage() {
     enabled: !!id,
   });
 
+  const { data: favorites } = useQuery({
+    queryKey: ['favorites'],
+    queryFn: favoriteApi.list,
+    enabled: !!user,
+  });
+  const isFavorite = !!favorites?.find((f) => f.workerProfileId === id);
+
+  // Log a "view_worker" event once per profile visit, with the source.
+  useEffect(() => {
+    if (!id) return;
+    eventApi.log({ type: 'view_worker', workerId: id, source }).catch(() => {});
+  }, [id, source]);
+
   const favMutation = useMutation({
     mutationFn: () => workerApi.favorite(id!),
-    onSuccess: () => { toast.success('Added to favorites'); queryClient.invalidateQueries({ queryKey: ['worker', id] }); },
+    onSuccess: () => {
+      toast.success('Added to favorites');
+      eventApi.log({ type: 'favorite', workerId: id! }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
   });
 
   const unfavMutation = useMutation({
     mutationFn: () => workerApi.unfavorite(id!),
-    onSuccess: () => { toast.success('Removed from favorites'); queryClient.invalidateQueries({ queryKey: ['worker', id] }); },
+    onSuccess: () => { toast.success('Removed from favorites'); queryClient.invalidateQueries({ queryKey: ['favorites'] }); },
   });
 
   const [chatLoading, setChatLoading] = useState(false);
@@ -102,9 +121,17 @@ export function WorkerProfilePage() {
               {chatLoading ? <Spinner size={16} /> : <MessageCircle size={16} className="mr-2" />}
               Chat
             </Button>
-            <Button variant="outline" onClick={() => unfavMutation.mutate()}>
-              <Heart size={16} className="mr-2 fill-current text-red-500" /> Unfavorite
-            </Button>
+            {user && (
+              isFavorite ? (
+                <Button variant="outline" onClick={() => unfavMutation.mutate()}>
+                  <Heart size={16} className="mr-2 fill-current text-red-500" /> Saved
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => favMutation.mutate()}>
+                  <Heart size={16} className="mr-2" /> Save
+                </Button>
+              )
+            )}
           </div>
         </div>
       </Card>
@@ -142,9 +169,18 @@ export function WorkerProfilePage() {
             <Card className="p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Portfolio</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {worker.portfolio.map((img) => (
-                  <img key={img.id} src={img.imageUrl} alt="" className="aspect-square object-cover rounded-lg bg-gray-100" />
-                ))}
+                {worker.portfolio.map((img) => {
+                  const url = resolveImageUrl(img.imageUrl);
+                  return url ? (
+                    <img
+                      key={img.id}
+                      src={url}
+                      alt=""
+                      className="aspect-square object-cover rounded-lg bg-gray-100"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : null;
+                })}
               </div>
             </Card>
           )}

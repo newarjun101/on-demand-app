@@ -128,9 +128,29 @@ export const notificationApi = {
 
 export const favoriteApi = {
   list: () => apiClient.get('/favorites').then((r) => extractData<FavoriteItem[]>(r)),
+  add: (workerProfileId: string) => apiClient.post(`/workers/${workerProfileId}/favorite`).then((r) => extractData<unknown>(r)),
+  remove: (workerProfileId: string) => apiClient.delete(`/workers/${workerProfileId}/favorite`).then((r) => extractData<unknown>(r)),
 };
 
 export const uploadApi = {
   upload: (formData: FormData) =>
     apiClient.post('/files/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => extractData<{ url: string }>(r)),
+};
+
+export const eventApi = {
+  log: (input: {
+    type: 'search' | 'view_service' | 'view_worker' | 'view_category' | 'click' | 'favorite' | 'book' | 'chat';
+    serviceSlug?: string;
+    categorySlug?: string;
+    workerId?: string;
+    city?: string;
+    query?: string;
+    source?: 'organic' | 'boost' | 'search' | 'category' | 'home' | 'profile' | 'direct' | 'favorites' | 'requests' | 'recommendations';
+  }) => apiClient.post('/events', input).then((r) => extractData<unknown>(r)),
+  logBatch: (events: any[]) => apiClient.post('/events/batch', { events }).then((r) => extractData<unknown>(r)),
+};
+
+export const recommendationsApi = {
+  list: (params: { page?: number; pageSize?: number; latitude?: number; longitude?: number } = {}) =>
+    apiClient.get('/workers/recommendations', { params }).then((r) => extractData<PaginatedResponse<WorkerCardData>>(r)),
 };

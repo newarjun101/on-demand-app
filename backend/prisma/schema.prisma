@@ -2,7 +2,8 @@
 // PostgreSQL
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 datasource db {
@@ -125,6 +126,8 @@ model User {
   fullName          String
   avatarUrl         String?
   isActive          Boolean   @default(true)
+  isBanned          Boolean   @default(false)
+  bannedReason      String?
   emailVerified     Boolean   @default(false)
   phoneVerified     Boolean   @default(false)
   lastLoginAt       DateTime?
@@ -149,8 +152,10 @@ model User {
   paymentsReceived Payment[]  @relation("PaymentReceiver")
   disputesOpened  Dispute[]       @relation("DisputeOpener")
   addresses       Address[]
+  events          CustomerEvent[]
+  roles           UserRole[]
 
-  @@index([role])
+  @@index([role], name: "user_role_idx")
   @@index([deletedAt])
 }
 
@@ -181,12 +186,20 @@ model WorkerProfile {
   verifiedAt      DateTime?
   rejectionReason String?
 
+  // Boost: temporarily lifts this worker in search results for a fee.
+  isBoosted       Boolean  @default(false)
+  boostExpiresAt  DateTime?
+  // Whether the worker has bought at least one boost (shows "Pro" badge).
+  hasUsedBoost    Boolean  @default(false)
+
   services        WorkerService[]
   documents       WorkerDocument[]
   portfolio       PortfolioImage[]
   availability    WorkerAvailability[]
   workingHours    WorkingHours[]
   favorites       Favorite[]
+  boosts          Boost[]
+  kycDocuments    KycDocument[]
   // latest known location during active booking
   liveLatitude    Float?
   liveLongitude   Float?
@@ -197,6 +210,7 @@ model WorkerProfile {
 
   @@index([verificationStatus])
   @@index([city])
+  @@index([isBoosted, boostExpiresAt])
 }
 
 // ========================
@@ -281,6 +295,7 @@ model WorkerAvailability {
   isAvailable     Boolean  @default(true)
   startTime       String?  // "09:00"
   endTime         String?  // "18:00"
+  slots           Json?    // Array<{ startTime: string, endTime: string }>
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -547,4 +562,177 @@ model FileUpload {
   size      Int
   ownerId   String?
   createdAt DateTime @default(now())
+}
+
+// Customer activity tracking. Used for "Recommended for you" personalization
+// and for boost-targeting (which boosted workers a user is most likely to want).
+model CustomerEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String   // "search" | "view_service" | "view_worker" | "view_category" | "click" | "favorite" | "book" | "chat"
+  serviceSlug String?  // for searches & service views
+  categorySlug String? // for category views
+  workerId   String?  // for worker views/clicks
+  city       String?  // for searches
+  query      String?  // free-form text (search query)
+  // Where the view originated: organic | boost | search | category | home | profile | direct
+  source     String?  @default("organic")
+  weight     Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([workerId, createdAt])
+  @@index([workerId, source])
+}
+
+// =====================================================
+// Admin portal: roles, permissions, audit
+// =====================================================
+
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+  roles       RolePermission[]
+  @@index([resource, action])
+}
+
+model AdminRole {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  isBuiltIn   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  role         AdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  @@unique([roleId, permissionId])
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    String
+  role      AdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+  assignedBy String?
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  actorId     String
+  actorName   String
+  action      String
+  targetType  String?
+  targetId    String?
+  before      Json?
+  after       Json?
+  reason      String?
+  ip          String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@index([action, createdAt])
+}
+
+enum KycDocumentType {
+  NATIONAL_ID
+  PASSPORT
+  DRIVER_LICENSE
+  BUSINESS_LICENSE
+  ADDRESS_PROOF
+  OTHER
+}
+
+enum KycStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+  NEEDS_MORE_INFO
+}
+
+model KycDocument {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  type            KycDocumentType
+  status          KycStatus        @default(PENDING)
+  fileUrl         String
+  fileName        String
+  documentNumber  String?
+  expiresAt       DateTime?
+  workerNotes     String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  adminNotes      String?
+  blocksApproval  Boolean          @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([workerProfileId, status])
+  @@index([status, createdAt])
+}
+
+model PlatformConfig {
+  id        String   @id @default("singleton")
+  siteName         String   @default("Local Services")
+  supportEmail     String   @default("support@example.com")
+  supportPhone     String   @default("+959123456789")
+  commissionPercent Int    @default(10)
+  defaultCurrency   String  @default("MMK")
+  requireKycForBoost Boolean @default(true)
+  minRatingForBoost  Float   @default(4.0)
+  minJobsForBoost    Int     @default(5)
+  maxUploadMb        Int     @default(8)
+  maxRequestPhotoCount Int   @default(5)
+  autoApproveReviews Boolean  @default(true)
+  minReviewLength     Int     @default(0)
+  enableChat         Boolean  @default(true)
+  enableBookings     Boolean  @default(true)
+  enableBoosts       Boolean  @default(true)
+  enableAnalytics    Boolean  @default(true)
+  termsOfServiceUrl String?
+  privacyPolicyUrl  String?
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+}
+
+model Boost {
+  id              String   @id @default(uuid())
+  workerProfileId String
+  workerProfile    WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  amount          Int
+  currency        String   @default("MMK")
+  durationDays    Int
+  startsAt        DateTime @default(now())
+  expiresAt       DateTime
+  paymentMethod   String   @default("CASH_ON_COMPLETION")
+  status          String   @default("ACTIVE") // ACTIVE | EXPIRED | CANCELLED
+  createdAt       DateTime @default(now())
+
+  @@index([workerProfileId])
+  @@index([expiresAt])
 }

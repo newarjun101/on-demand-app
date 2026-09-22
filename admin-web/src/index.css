@@ -1,0 +1,5 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+html, body, #root { height: 100%; }
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #0f172a; -webkit-font-smoothing: antialiased; }
+div[role="status"] button[aria-label="Close"], div[role="status"] button[aria-label="Dismiss"] { opacity: 0.6 !important; transition: opacity 0.15s ease; }
+div[role="status"]:hover button[aria-label="Close"], div[role="status"]:hover button[aria-label="Dismiss"] { opacity: 1 !important; }

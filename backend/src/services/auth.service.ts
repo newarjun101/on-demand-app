@@ -13,13 +13,17 @@ export interface AuthResult {
     email: string | null;
     phone: string | null;
     avatarUrl: string | null;
+    roles?: { id: string; slug: string; name: string }[];
+    permissions?: string[];
   };
   accessToken: string;
   refreshToken: string;
 }
 
-function slugifyRole(role: Role): 'CUSTOMER_WEB' | 'WORKER_WEB' {
-  return role === 'WORKER' ? 'WORKER_WEB' : 'CUSTOMER_WEB';
+function slugifyRole(role: Role): 'CUSTOMER_WEB' | 'WORKER_WEB' | 'ADMIN_WEB' {
+  if (role === 'WORKER') return 'WORKER_WEB';
+  if (role === 'ADMIN') return 'ADMIN_WEB';
+  return 'CUSTOMER_WEB';
 }
 
 async function buildAuthResult(user: any): Promise<AuthResult> {
@@ -35,6 +39,18 @@ async function buildAuthResult(user: any): Promise<AuthResult> {
     where: { id: user.id },
     data: { lastLoginAt: new Date(), refreshTokenHash: await hashPassword(refreshToken) },
   });
+  // For admins, include the list of roles and the union of their permissions
+  // so the admin-web can do client-side permission gating.
+  let roles: { id: string; slug: string; name: string }[] | undefined;
+  let permissions: string[] | undefined;
+  if (user.role === 'ADMIN') {
+    const urs = await prisma.userRole.findMany({
+      where: { userId: user.id },
+      include: { role: { include: { permissions: { include: { permission: true } } } } },
+    });
+    roles = urs.map((ur) => ({ id: ur.role.id, slug: ur.role.slug, name: ur.role.name }));
+    permissions = Array.from(new Set(urs.flatMap((ur) => ur.role.permissions.map((rp) => rp.permission.key))));
+  }
   return {
     user: {
       id: user.id,
@@ -43,6 +59,8 @@ async function buildAuthResult(user: any): Promise<AuthResult> {
       email: user.email,
       phone: user.phone,
       avatarUrl: user.avatarUrl,
+      roles,
+      permissions,
     },
     accessToken,
     refreshToken,
@@ -106,9 +124,9 @@ export const authService = {
         ? { email: input.identifier.toLowerCase() }
         : { phone: input.identifier },
     });
-    if (!user || !user.isActive) throw errors.unauthorized('Invalid credentials');
+    if (!user || !user.isActive) throw errors.invalidCredentials('Invalid email or password');
     const ok = await verifyPassword(user.passwordHash, input.password);
-    if (!ok) throw errors.unauthorized('Invalid credentials');
+    if (!ok) throw errors.invalidCredentials('Invalid email or password');
     return buildAuthResult(user);
   },
 

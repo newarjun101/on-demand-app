@@ -52,6 +52,10 @@ export const workerApi = {
     apiClient.post('/workers/me/status', { isOnline, isAcceptingJobs }).then((r) => extractData<WorkerProfile>(r)),
   updateLocation: (latitude: number, longitude: number) =>
     apiClient.post('/workers/me/location', { latitude, longitude }).then((r) => extractData<unknown>(r)),
+  addPortfolioImage: (imageUrl: string, caption?: string) =>
+    apiClient.post('/workers/me/portfolio', { imageUrl, caption }).then((r) => extractData<unknown>(r)),
+  removePortfolioImage: (imageId: string) =>
+    apiClient.delete(`/workers/me/portfolio/${imageId}`).then((r) => extractData<unknown>(r)),
 };
 
 export const requestApi = {
@@ -89,6 +93,62 @@ export const notificationApi = {
     apiClient.get('/notifications', { params: { page, pageSize, unreadOnly } }).then((r) => extractData<PaginatedResponse<NotificationItem> & { unread: number }>(r)),
   markRead: (id: string) => apiClient.post(`/notifications/${id}/read`).then((r) => extractData<unknown>(r)),
   markAllRead: () => apiClient.post('/notifications/read-all').then((r) => extractData<unknown>(r)),
+};
+
+export const boostApi = {
+  pricing: () => apiClient.get('/pricing').then((r) => extractData<{ tiers: Array<{ days: number; amount: number; label: string; boostFactor: number }> }>(r)),
+  purchase: (input: { durationDays: number; amount: number; paymentMethod?: string }) =>
+    apiClient.post('/me/boost', input).then((r) => extractData<unknown>(r)),
+  myBoosts: () => apiClient.get('/me/boosts').then((r) => extractData<{ boosts: any[]; isBoosted: boolean; boostExpiresAt: string | null }>(r)),
+};
+
+export type AnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all';
+
+export interface AnalyticsKpis {
+  views: number;
+  viewsDelta: number;
+  favorites: number;
+  favoritesDelta: number;
+  bookings: number;
+  bookingsDelta: number;
+  chats: number;
+  chatsDelta: number;
+  viewToFavoritePct: number;
+  viewToBookingPct: number;
+  boostSharePct: number;
+  organicSharePct: number;
+}
+
+export interface AnalyticsDailyPoint {
+  date: string;
+  views: number;
+  favorites: number;
+  bookings: number;
+  chats: number;
+}
+
+export interface AnalyticsSource {
+  source: string;
+  views: number;
+  favorites: number;
+  bookings: number;
+  chats: number;
+}
+
+export interface AnalyticsResponse {
+  range: AnalyticsRange;
+  from: string;
+  to: string;
+  isBoosted: boolean;
+  boostExpiresAt: string | null;
+  kpis: AnalyticsKpis;
+  daily: AnalyticsDailyPoint[];
+  bySource: AnalyticsSource[];
+}
+
+export const analyticsApi = {
+  get: (range: AnalyticsRange) =>
+    apiClient.get('/me/analytics', { params: { range } }).then((r) => extractData<AnalyticsResponse>(r)),
 };
 
 export const earningsApi = {

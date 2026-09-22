@@ -18,9 +18,45 @@ import { favoriteRouter } from './routes/favorite.routes';
 import { disputeRouter } from './routes/dispute.routes';
 import { adminRouter } from './routes/admin.routes';
 import { fileRouter } from './routes/file.routes';
-import { errorHandler, notFoundHandler } from './middleware/error';
+import { boostRouter } from './routes/boost.routes';
+import { eventRouter } from './routes/event.routes';
+import { analyticsRouter } from './routes/analytics.routes';
+import { errorHandler, notFoundHandler, apiVersionRouter } from './middleware/i18n';
 import { detectOrigin } from './middleware/auth';
 import { generalRateLimiter } from './middleware/rateLimit';
+import { docsRouter } from './swagger';
+
+// All routers are mounted under BOTH the versioned /api/v1/:locale prefix
+// (recommended) AND the legacy /api prefix (kept for backwards compatibility).
+// The apiVersionRouter strips the /v1/:locale prefix before the request
+// reaches the actual router so router code is unchanged.
+const versionedApiRouter = express.Router();
+const legacyApiRouter = express.Router();
+
+function register(router: express.Router) {
+  router.use('/auth', authRouter);
+  router.use('/users', userRouter);
+  router.use('/workers', workerRouter);
+  router.use('/categories', categoryRouter);
+  router.use('/services', serviceRouter);
+  router.use('/requests', requestRouter);
+  router.use(quoteRouter); // /requests/:id/quotes, /quotes/:id/...
+  router.use('/bookings', bookingRouter);
+  router.use(reviewRouter);
+  router.use('/conversations', conversationRouter);
+  router.use('/messages', messageRouter);
+  router.use('/notifications', notificationRouter);
+  router.use('/favorites', favoriteRouter);
+  router.use('/disputes', disputeRouter);
+  router.use('/admin', adminRouter);
+  router.use('/files', fileRouter);
+  router.use(boostRouter);
+  router.use('/events', eventRouter);
+  router.use(analyticsRouter);
+}
+
+register(versionedApiRouter);
+register(legacyApiRouter);
 
 export function buildApp() {
   const app = express();
@@ -45,6 +81,9 @@ export function buildApp() {
   // Detect which app is calling
   app.use(detectOrigin());
 
+  // Strip /api/v1/:locale prefix + pick up the locale
+  app.use(apiVersionRouter);
+
   // General rate limit
   app.use('/api', generalRateLimiter);
 
@@ -56,23 +95,14 @@ export function buildApp() {
     res.json({ success: true, data: { status: 'ok', env: env.nodeEnv, time: new Date().toISOString() } });
   });
 
+  // Swagger / OpenAPI docs
+  //   GET /api/docs(.json)                 legacy
+  //   GET /api/v1/:locale/docs(.json)       versioned + localized
+  app.use('/api', docsRouter());
+
   // Routes
-  app.use('/api/auth', authRouter);
-  app.use('/api/users', userRouter);
-  app.use('/api/workers', workerRouter);
-  app.use('/api/categories', categoryRouter);
-  app.use('/api/services', serviceRouter);
-  app.use('/api/requests', requestRouter);
-  app.use('/api', quoteRouter); // /api/requests/:id/quotes, /api/quotes/:id/...
-  app.use('/api/bookings', bookingRouter);
-  app.use('/api', reviewRouter);
-  app.use('/api/conversations', conversationRouter);
-  app.use('/api/messages', messageRouter);
-  app.use('/api/notifications', notificationRouter);
-  app.use('/api/favorites', favoriteRouter);
-  app.use('/api/disputes', disputeRouter);
-  app.use('/api/admin', adminRouter);
-  app.use('/api/files', fileRouter);
+  app.use('/api/v1/:locale', versionedApiRouter);
+  app.use('/api', legacyApiRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom';
-import { BadgeCheck, MapPin, Star } from 'lucide-react';
+import { BadgeCheck, MapPin, Star, Zap } from 'lucide-react';
 import { Avatar, Badge, StarRating } from '@/components/UI';
 import { WorkerCardData } from '@/types';
-import { formatMmk } from '@/utils/format';
+import { formatMmk, resolveImageUrl } from '@/utils/format';
 
-export function WorkerCard({ worker }: { worker: WorkerCardData }) {
+export function WorkerCard({ worker, source }: { worker: WorkerCardData; source?: string }) {
+  const cover = resolveImageUrl(worker.portfolio[0]);
+  const href = source ? `/workers/${worker.id}?src=${source}` : `/workers/${worker.id}`;
   return (
     <Link
-      to={`/workers/${worker.id}`}
+      to={href}
       className="group bg-white rounded-2xl border border-gray-100 hover:border-brand-300 hover:shadow-lg transition overflow-hidden flex flex-col"
     >
       <div className="aspect-[16/9] bg-gradient-to-br from-brand-50 to-brand-100 relative">
-        {worker.portfolio[0] ? (
-          <img src={worker.portfolio[0]} alt="" className="w-full h-full object-cover" />
+        {cover ? (
+          <img src={cover} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-brand-300 text-4xl font-semibold">
             {worker.name.split(' ').map((p) => p[0]).slice(0, 2).join('')}
@@ -21,7 +23,12 @@ export function WorkerCard({ worker }: { worker: WorkerCardData }) {
         {worker.emergencyAvailable && (
           <span className="absolute top-3 right-3"><Badge color="red">24/7</Badge></span>
         )}
-        {worker.verified && (
+        {worker.boosted && (
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+            <Zap size={12} fill="currentColor" /> Boosted
+          </span>
+        )}
+        {worker.verified && !worker.boosted && (
           <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-white/90 backdrop-blur text-xs text-brand-700 font-medium px-2 py-1 rounded-full">
             <BadgeCheck size={14} className="text-brand-600" /> Verified
           </span>

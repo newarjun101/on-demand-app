@@ -12,3 +12,14 @@ body {
   background: #f9fafb;
   color: #111827;
 }
+
+/* Always show the react-hot-toast close button (not just on hover) */
+div[role="status"] button[aria-label="Close"],
+div[role="status"] button[aria-label="Dismiss"] {
+  opacity: 0.6 !important;
+  transition: opacity 0.15s ease;
+}
+div[role="status"]:hover button[aria-label="Close"],
+div[role="status"]:hover button[aria-label="Dismiss"] {
+  opacity: 1 !important;
+}

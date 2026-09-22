@@ -1,13 +1,21 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { bookingApi } from '@/api/endpoints';
 import { Avatar, Badge, Card, EmptyState, Skeleton } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 import { formatDate, formatMmk } from '@/utils/format';
 import { BOOKING_STATUS_LABELS } from '@/utils/statuses';
 import { Wrench, MapPin, CalendarDays } from 'lucide-react';
 
+const PAGE_SIZE = 20;
+
 export function JobsPage() {
-  const { data, isLoading } = useQuery({ queryKey: ['jobs'], queryFn: () => bookingApi.listJobs(1, 50) });
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useQuery({
+    queryKey: ['jobs', page],
+    queryFn: () => bookingApi.listJobs(page, PAGE_SIZE),
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -45,6 +53,9 @@ export function JobsPage() {
           ))
         )}
       </div>
+      {data && data.total > PAGE_SIZE && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />
+      )}
     </div>
   );
 }

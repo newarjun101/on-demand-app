@@ -135,8 +135,17 @@ export function JobDetailPage() {
 
         {booking.review && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
-            <div className="flex items-center gap-2"><StarRating value={booking.review.rating} /><span className="font-medium">{booking.review.rating}/5</span></div>
-            {booking.review.comment && <p className="text-gray-700 mt-1">{booking.review.comment}</p>}
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="flex items-center gap-2">
+                <Avatar src={booking.review.author?.avatarUrl ?? null} name={booking.review.author?.fullName ?? 'Customer'} size={24} />
+                <span className="font-medium text-gray-900">{booking.review.author?.fullName ?? 'Customer'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <StarRating value={booking.review.rating} />
+                <span className="font-medium">{booking.review.rating}/5</span>
+              </div>
+            </div>
+            {booking.review.comment && <p className="text-gray-700 mt-1">"{booking.review.comment}"</p>}
           </div>
         )}
 

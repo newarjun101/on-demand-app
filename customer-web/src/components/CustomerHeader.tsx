@@ -1,12 +1,15 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button, Avatar } from '@/components/UI';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { useI18n } from '@/i18n';
 import { Home, Search, CalendarDays, MessageCircle, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
 export function CustomerHeader() {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -16,10 +19,10 @@ export function CustomerHeader() {
   }
 
   const navItems = [
-    { to: '/', label: 'Home', icon: Home },
-    { to: '/services', label: 'Search', icon: Search },
-    { to: '/bookings', label: 'Bookings', icon: CalendarDays },
-    { to: '/messages', label: 'Messages', icon: MessageCircle },
+    { to: '/', label: t('nav.home'), icon: Home },
+    { to: '/services', label: t('nav.search'), icon: Search },
+    { to: '/bookings', label: t('nav.bookings'), icon: CalendarDays },
+    { to: '/messages', label: t('nav.messages'), icon: MessageCircle },
   ];
 
   return (
@@ -31,8 +34,8 @@ export function CustomerHeader() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h 3v 9h 6v-6h 2v6h 6v-9h3z" /></svg>
             </div>
             <div>
-              <div className="font-bold text-gray-900 leading-tight">Local Services</div>
-              <div className="text-[10px] text-gray-500 leading-tight">Find trusted workers</div>
+              <div className="font-bold text-gray-900 leading-tight">{t('common.appName')}</div>
+              <div className="text-[10px] text-gray-500 leading-tight">{t('home.heroTitle')}</div>
             </div>
           </Link>
 
@@ -55,6 +58,7 @@ export function CustomerHeader() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <LocaleSwitcher />
             {user ? (
               <div className="relative">
                 <button
@@ -66,19 +70,19 @@ export function CustomerHeader() {
                 </button>
                 {open && (
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-50">
-                    <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><User size={16}/>Profile</Link>
-                    <Link to="/favorites" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">Favorites</Link>
-                    <Link to="/notifications" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">Notifications</Link>
-                    <Link to="/settings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">Settings</Link>
+                    <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50"><User size={16}/>{t('nav.profile')}</Link>
+                    <Link to="/favorites" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">{t('nav.favorites')}</Link>
+                    <Link to="/notifications" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">{t('nav.notifications')}</Link>
+                    <Link to="/settings" className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50">{t('nav.settings')}</Link>
                     <hr className="my-1" />
-                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 text-red-600"><LogOut size={16}/>Logout</button>
+                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 text-red-600"><LogOut size={16}/>{t('nav.logout')}</button>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login"><Button variant="ghost">Login</Button></Link>
-                <Link to="/register"><Button>Sign up</Button></Link>
+                <Link to="/login"><Button variant="ghost">{t('nav.login')}</Button></Link>
+                <Link to="/register"><Button>{t('nav.signup')}</Button></Link>
               </div>
             )}
           </div>
@@ -105,7 +109,7 @@ export function CustomerHeader() {
         ))}
         <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
           <User size={20} />
-          Profile
+          {t('nav.profile')}
         </NavLink>
       </nav>
     </header>

@@ -7,16 +7,19 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button, Card, Spinner } from '@/components/UI';
 import { authApi } from '@/api/endpoints';
-import { Mail, Phone, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { zStringRequired } from '@/utils/zod-helpers';
+import { useI18n } from '@/i18n';
 
 const schema = z.object({
-  identifier: z.string().min(3, 'Enter your email or phone'),
-  password: z.string().min(1, 'Enter your password'),
+  identifier: zStringRequired('Enter your email or phone'),
+  password: zStringRequired('Enter your password'),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 export function LoginPage() {
+  const { t } = useI18n();
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -31,10 +34,10 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login(values.identifier, values.password);
-      toast.success('Welcome back!');
+      toast.success(t('auth.welcomeBack') + '!');
       navigate(redirect);
     } catch (err: any) {
-      toast.error(err?.response?.data?.error?.message ?? 'Login failed');
+      toast.error(err?.response?.data?.error?.message ?? t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -44,7 +47,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await login('customer@demo.com', 'Customer@123');
-      toast.success('Welcome!');
+      toast.success(t('auth.welcomeBack') + '!');
       navigate('/');
     } finally {
       setLoading(false);
@@ -54,11 +57,11 @@ export function LoginPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <Card className="p-8">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="text-sm text-gray-500 mt-1">Log in to your account</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('auth.welcomeBack')}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t('auth.loginSubtitle')}</p>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">Email or phone</label>
+            <label className="text-sm font-medium text-gray-700">{t('auth.emailOrPhone')}</label>
             <div className="mt-1 relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
@@ -70,7 +73,7 @@ export function LoginPage() {
             {errors.identifier && <p className="text-xs text-red-600 mt-1">{errors.identifier.message}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Password</label>
+            <label className="text-sm font-medium text-gray-700">{t('auth.password')}</label>
             <div className="mt-1 relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
@@ -83,22 +86,22 @@ export function LoginPage() {
             {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
           </div>
           <div className="flex items-center justify-between text-sm">
-            <Link to="/forgot-password" className="text-brand-700 hover:underline">Forgot password?</Link>
+            <Link to="/forgot-password" className="text-brand-700 hover:underline">{t('auth.forgotPassword')}?</Link>
           </div>
           <Button type="submit" disabled={loading}>
-            {loading ? <Spinner size={16} /> : <>Log in <ArrowRight size={16} className="ml-1" /></>}
+            {loading ? <Spinner size={16} /> : <>{t('nav.login')} <ArrowRight size={16} className="ml-1" /></>}
           </Button>
           <button type="button" onClick={fillDemo} className="text-xs text-brand-700 hover:underline self-start" disabled={loading}>
-            Use demo customer account
+            {t('auth.useDemoCustomer')}
           </button>
         </form>
         <div className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-brand-700 font-medium hover:underline">Sign up</Link>
+          {t('auth.noAccount')}{' '}
+          <Link to="/register" className="text-brand-700 font-medium hover:underline">{t('nav.signup')}</Link>
         </div>
         <div className="mt-4 text-center text-xs text-gray-400">
-          Looking to offer services?{' '}
-          <a href="http://localhost:5174/register" className="text-brand-700 hover:underline">Join as a worker</a>
+          {t('auth.lookingToOffer')}{' '}
+          <a href="http://localhost:5174/register" className="text-brand-700 hover:underline">{t('auth.joinAsWorker')}</a>
         </div>
       </Card>
     </div>

@@ -24,7 +24,7 @@ export const bookingService = {
           worker: { select: { id: true, fullName: true, avatarUrl: true } },
           request: { include: { service: { include: { category: true } } } },
           payment: true,
-          review: true,
+          review: { include: { author: { select: { id: true, fullName: true, avatarUrl: true } } } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
@@ -43,7 +43,7 @@ export const bookingService = {
           customer: { select: { id: true, fullName: true, avatarUrl: true } },
           request: { include: { service: { include: { category: true } } } },
           payment: true,
-          review: true,
+          review: { include: { author: { select: { id: true, fullName: true, avatarUrl: true } } } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
@@ -70,7 +70,7 @@ export const bookingService = {
         request: { include: { service: { include: { category: true } }, photos: true } },
         quote: true,
         payment: true,
-        review: true,
+        review: { include: { author: { select: { id: true, fullName: true, avatarUrl: true } } } },
       },
     });
     if (!booking) throw errors.notFound('Booking not found');
