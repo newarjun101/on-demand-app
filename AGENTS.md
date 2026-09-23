@@ -1,5 +1,33 @@
 # Repository Agent Guide
 
+## Required orientation
+
+Before making a non-trivial change, read
+[`docs/PROJECT_KNOWLEDGE.md`](docs/PROJECT_KNOWLEDGE.md). It is the maintained
+implementation map for the four applications: domain lifecycles, API
+conventions, authorization, database relationships, realtime events, frontend
+ownership, operational checks, and known caveats.
+
+Use the knowledge base as the starting point, then inspect the closest existing
+implementation before editing. The source code and Prisma schema remain the
+final authority if this guide and code ever differ.
+
+### Fast lookup by task
+
+| Task | Start with |
+| --- | --- |
+| API endpoint or contract | `backend/src/routes/`, `validators/`, `controllers/`, `services/`, then `backend/src/swagger.ts` |
+| Database model or state | `backend/prisma/schema.prisma`, the matching service, and migrations |
+| Customer behavior | `customer-web/src/App.tsx`, then its page/API/locale files |
+| Worker behavior | `worker-web/src/App.tsx`, approval guard, then its page/API/locale files |
+| Administration | `backend/src/routes/admin.routes.ts`, `admin.service.ts`, then `admin-web` |
+| Realtime behavior | `backend/src/sockets/io.ts`, emitting service, and client socket hooks |
+| Deployment/runtime | `docker-compose.yml`, Dockerfiles, nginx files, and root `README.md` |
+
+When changing a user-visible workflow, trace it end to end: validator,
+authorization, service rules, persistence, Swagger, affected frontend API
+calls/query invalidation, realtime event if applicable, and all five locales.
+
 ## Project
 
 Local Services Marketplace is a TypeScript monorepo with one shared backend and three independent React/Vite frontends:

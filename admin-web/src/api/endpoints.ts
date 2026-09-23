@@ -34,8 +34,21 @@ export type AdminWorker = {
 
 export type KycDocument = {
   id: string; workerProfileId: string; type: string; status: string;
-  fileUrl: string; fileName: string; documentNumber: string | null;
-  workerName?: string; workerEmail?: string; createdAt: string;
+  fileUrl: string; fileName: string; documentNumber: string | null; workerNotes?: string | null;
+  adminNotes?: string | null; rejectionReason?: string | null; reviewedAt?: string | null;
+  workerName?: string; workerEmail?: string | null; workerPhone?: string | null;
+  workerAvatarUrl?: string | null; workerCity?: string | null; workerVerificationStatus?: string;
+  createdAt: string;
+};
+
+export type WorkerKycDetail = {
+  id: string; bio: string | null; city: string | null; addressLine: string | null;
+  experienceYears: number; serviceRadiusKm: number; verificationStatus: string;
+  ratingAverage: number; ratingCount: number; completedJobs: number;
+  user: { id: string; fullName: string; email: string | null; phone: string | null; avatarUrl: string | null; createdAt: string };
+  services: Array<{ id: string; pricingType: string; startingPrice: number | null; hourlyRate: number | null; fixedPrice: number | null; service: { name: string; category: { name: string } } }>;
+  availability: Array<{ id: string; day: string; isAvailable: boolean; startTime: string | null; endTime: string | null }>;
+  kycDocuments: KycDocument[];
 };
 
 export type AdminBooking = {
@@ -83,6 +96,8 @@ export const adminApi = {
     apiClient.get('/admin/kyc', { params }).then((r) => r.data.data),
   workerDocuments: (workerProfileId: string) =>
     apiClient.get(`/admin/workers/${workerProfileId}/documents`).then((r) => r.data.data),
+  workerKycDetails: (workerProfileId: string): Promise<WorkerKycDetail> =>
+    apiClient.get(`/admin/workers/${workerProfileId}/kyc-details`).then((r) => r.data.data),
   reviewKyc: (id: string, body: { action: string; reason?: string; adminNotes?: string }) =>
     apiClient.post(`/admin/kyc/${id}/review`, body).then((r) => r.data),
   listBookings: (params: { page?: number; pageSize?: number; status?: string } = {}) =>

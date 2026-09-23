@@ -197,7 +197,25 @@ export const adminService = {
       }),
       prisma.workerProfile.count({ where }),
     ]);
-    return { items, total, page: p.page, pageSize: p.pageSize };
+    return {
+      items: items.map((worker) => ({
+        id: worker.id,
+        userId: worker.userId,
+        fullName: worker.user.fullName,
+        email: worker.user.email,
+        phone: worker.user.phone,
+        avatarUrl: worker.user.avatarUrl,
+        city: worker.city,
+        verificationStatus: worker.verificationStatus,
+        ratingAverage: worker.ratingAverage,
+        ratingCount: worker.ratingCount,
+        completedJobs: worker.completedJobs,
+        isBoosted: worker.isBoosted,
+      })),
+      total,
+      page: p.page,
+      pageSize: p.pageSize,
+    };
   },
 
   async approveWorker(actorId: string, workerProfileId: string) {
@@ -250,6 +268,20 @@ export const adminService = {
     return docs.map((d) => ({ ...d, workerName: profile?.user.fullName, workerEmail: profile?.user.email }));
   },
 
+  async workerKycDetails(workerProfileId: string) {
+    const profile = await prisma.workerProfile.findUnique({
+      where: { id: workerProfileId },
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true, createdAt: true } },
+        services: { include: { service: { include: { category: true } } }, orderBy: { createdAt: 'desc' } },
+        availability: { orderBy: { day: 'asc' } },
+        kycDocuments: { orderBy: { createdAt: 'desc' } },
+      },
+    });
+    if (!profile) throw errors.notFound('Worker not found');
+    return profile;
+  },
+
   // -------- KYC --------
   async listKyc(p: { page: number; pageSize: number; status?: string }) {
     const where: any = {};
@@ -257,13 +289,37 @@ export const adminService = {
     const [items, total] = await Promise.all([
       prisma.kycDocument.findMany({
         where,
-        include: { workerProfile: { include: { user: { select: { id: true, fullName: true, email: true, phone: true } } } } },
+        include: { workerProfile: { include: { user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } } } } },
         orderBy: { createdAt: 'desc' },
         skip: (p.page - 1) * p.pageSize, take: p.pageSize,
       }),
       prisma.kycDocument.count({ where }),
     ]);
-    return { items, total, page: p.page, pageSize: p.pageSize };
+    return {
+      items: items.map((document) => ({
+        id: document.id,
+        workerProfileId: document.workerProfileId,
+        type: document.type,
+        status: document.status,
+        fileUrl: document.fileUrl,
+        fileName: document.fileName,
+        documentNumber: document.documentNumber,
+        workerNotes: document.workerNotes,
+        adminNotes: document.adminNotes,
+        rejectionReason: document.rejectionReason,
+        reviewedAt: document.reviewedAt,
+        createdAt: document.createdAt,
+        workerName: document.workerProfile.user.fullName,
+        workerEmail: document.workerProfile.user.email,
+        workerPhone: document.workerProfile.user.phone,
+        workerAvatarUrl: document.workerProfile.user.avatarUrl,
+        workerCity: document.workerProfile.city,
+        workerVerificationStatus: document.workerProfile.verificationStatus,
+      })),
+      total,
+      page: p.page,
+      pageSize: p.pageSize,
+    };
   },
 
   async reviewKyc(actorId: string, docId: string, body: { action: 'APPROVE' | 'REJECT' | 'NEEDS_MORE_INFO'; reason?: string; adminNotes?: string }) {

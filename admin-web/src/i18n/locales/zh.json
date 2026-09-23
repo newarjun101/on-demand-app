@@ -170,7 +170,9 @@
     "rejectionReason": "拒绝原因(服务者可见)",
     "adminNotes": "内部备注",
     "viewDocument": "查看材料", "details": "查看详情",
-    "noPendingDocs": "暂无待审核材料"
+    "noPendingDocs": "暂无待审核材料",
+    "documents": "KYC 材料", "noDocuments": "未上传材料",
+    "services": "提供的服务", "availability": "可用时间", "experience": "从业年限"
   },
   "bookings": {
     "title": "预约",

@@ -37,6 +37,7 @@ adminRouter.post('/workers/:id/approve', requirePermission('workers:verify'), ad
 adminRouter.post('/workers/:id/reject', requirePermission('workers:verify'), adminController.rejectWorker);
 adminRouter.post('/workers/:id/suspend', requirePermission('workers:suspend'), adminController.suspendWorker);
 adminRouter.get('/workers/:id/documents', requirePermission('kyc:view'), adminController.workerDocuments);
+adminRouter.get('/workers/:id/kyc-details', requirePermission('kyc:view'), adminController.workerKycDetails);
 
 adminRouter.get('/kyc', requirePermission('kyc:view'), adminController.listKyc);
 adminRouter.post('/kyc/:id/review', requirePermission('kyc:approve'), adminController.reviewKyc);

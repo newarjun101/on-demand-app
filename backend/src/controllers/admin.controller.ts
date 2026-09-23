@@ -49,6 +49,7 @@ export const adminController = {
   rejectWorker: handle(async (req, res) => { const { reason } = reasonSchema.parse(req.body); res.json(ok(await adminService.rejectWorker(req.user!.sub, req.params.id, reason))); }),
   suspendWorker: handle(async (req, res) => { const { reason } = reasonSchema.parse(req.body); res.json(ok(await adminService.suspendWorker(req.user!.sub, req.params.id, reason))); }),
   workerDocuments: handle(async (req, res) => { res.json(ok(await adminService.workerDocuments(req.params.id))); }),
+  workerKycDetails: handle(async (req, res) => { res.json(ok(await adminService.workerKycDetails(req.params.id))); }),
   listKyc: handle(async (req, res) => { res.json(ok(await adminService.listKyc(kycListSchema.parse(req.query)))); }),
   reviewKyc: handle(async (req, res) => { res.json(ok(await adminService.reviewKyc(req.user!.sub, req.params.id, kycReviewSchema.parse(req.body)))); }),
   listBookings: handle(async (req, res) => { res.json(ok(await adminService.listBookings(bookingListSchema.parse(req.query)))); }),

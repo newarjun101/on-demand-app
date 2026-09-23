@@ -28,6 +28,7 @@ interface RouteInfo {
   description: string;
   auth: 'public' | 'customer-or-worker' | 'worker' | 'customer' | 'admin';
   bodySchema?: string; // $ref to a schema name
+  requestContentType?: 'application/json' | 'multipart/form-data';
   querySchema?: Array<{ name: string; in: 'query' | 'path'; required: boolean; type: string; description: string }>;
 }
 
@@ -150,7 +151,7 @@ const ROUTES: RouteInfo[] = [
   { method: 'post', path: '/api/bookings/:bookingId/review', fullPath: '/api/v1/{locale}/bookings/{bookingId}/review', summary: 'Leave a review', description: 'Customer leaves a 1-5 star review with optional comment and photos', auth: 'customer', bodySchema: 'CreateReviewRequest' },
 
   // Files
-  { method: 'post', path: '/api/files/upload',            fullPath: '/api/v1/{locale}/files/upload',            summary: 'Upload a file',         description: 'Multipart upload; returns { url }', auth: 'customer-or-worker' },
+  { method: 'post', path: '/api/files/upload',            fullPath: '/api/v1/{locale}/files/upload',            summary: 'Upload a file',         description: 'Upload one authenticated multipart file in the `file` field; returns its public URL', auth: 'customer-or-worker', bodySchema: 'FileUploadRequest', requestContentType: 'multipart/form-data' },
 
   // Events (personalisation)
   { method: 'post', path: '/api/events',                  fullPath: '/api/v1/{locale}/events',                  summary: 'Log an event',          description: 'Log a customer activity event (search / view / click / favorite / book / chat)', auth: 'customer' },
@@ -196,6 +197,7 @@ const ROUTES: RouteInfo[] = [
   { method: 'post', path: '/api/admin/workers/:id/reject', fullPath: '/api/v1/{locale}/admin/workers/{id}/reject', summary: 'Reject worker', description: 'Reject a worker profile with a reason', auth: 'admin', bodySchema: 'AdminReasonRequest' },
   { method: 'post', path: '/api/admin/workers/:id/suspend', fullPath: '/api/v1/{locale}/admin/workers/{id}/suspend', summary: 'Suspend worker', description: 'Suspend a worker profile with a reason', auth: 'admin', bodySchema: 'AdminReasonRequest' },
   { method: 'get', path: '/api/admin/workers/:id/documents', fullPath: '/api/v1/{locale}/admin/workers/{id}/documents', summary: 'Worker documents', description: 'List documents submitted by a worker', auth: 'admin' },
+  { method: 'get', path: '/api/admin/workers/:id/kyc-details', fullPath: '/api/v1/{locale}/admin/workers/{id}/kyc-details', summary: 'Worker KYC details', description: 'Return the worker profile, services, availability, and full KYC document review history', auth: 'admin' },
   { method: 'get', path: '/api/admin/kyc', fullPath: '/api/v1/{locale}/admin/kyc', summary: 'List KYC documents', description: 'List worker verification documents by status', auth: 'admin', querySchema: [
     { name: 'status', in: 'query', required: false, type: 'string', description: 'PENDING | UNDER_REVIEW | APPROVED | REJECTED | NEEDS_MORE_INFO | all' },
     { name: 'page', in: 'query', required: false, type: 'integer', description: 'Page number' },
@@ -430,6 +432,15 @@ const SCHEMAS: Record<string, any> = {
     type: 'object',
     properties: { reason: { type: 'string' } },
   },
+  BookingStatusRequest: {
+    type: 'object',
+    required: ['status'],
+    properties: {
+      status: { type: 'string', enum: ['ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] },
+      latitude: { type: 'number', minimum: -90, maximum: 90, description: 'Optional live worker latitude' },
+      longitude: { type: 'number', minimum: -180, maximum: 180, description: 'Optional live worker longitude' },
+    },
+  },
   PayBookingRequest: {
     type: 'object',
     properties: { method: { type: 'string', enum: ['CASH_ON_COMPLETION', 'KBZPAY', 'WAVE_MONEY', 'AYA_PAY', 'STRIPE'] } },
@@ -451,6 +462,13 @@ const SCHEMAS: Record<string, any> = {
       requestId:      { type: 'string', format: 'uuid' },
       text:           { type: 'string' },
       imageUrl:       { type: 'string' },
+    },
+  },
+  FileUploadRequest: {
+    type: 'object',
+    required: ['file'],
+    properties: {
+      file: { type: 'string', format: 'binary', description: 'The file content to upload' },
     },
   },
   DisputeRequest: {
@@ -626,16 +644,13 @@ export function buildSpec(locale: ApiLocale) {
   };
 
   for (const r of ROUTES) {
-    const opPath = r.fullPath;
     const actualPath = r.path;
     const firstSeg = actualPath.split('/').find((s: string) => s && !s.startsWith(':') && !s.startsWith('api'));
     const tagName = TAG_MAP[firstSeg ?? ''] ?? 'Workers';
-    if (!spec.paths[opPath]) spec.paths[opPath] = {};
     const op: any = {
       tags: [tagName],
       summary:     r.summary,
       description: r.description,
-      operationId: r.method.toUpperCase() + opPath.replace(/[\/{}:-]/g, '_'),
       responses: {
         200: { description: 'OK' },
         201: { description: 'Created' },
@@ -653,14 +668,36 @@ export function buildSpec(locale: ApiLocale) {
       op.security = [{ bearerAuth: [] }];
     }
     if (r.bodySchema) {
-      op.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/' + r.bodySchema } } } };
+      op.requestBody = {
+        required: true,
+        content: {
+          [r.requestContentType ?? 'application/json']: { schema: { $ref: '#/components/schemas/' + r.bodySchema } },
+        },
+      };
     }
-    if (r.querySchema && r.querySchema.length) {
-      op.parameters = r.querySchema.map((q) => ({
-        name: q.name, in: q.in, required: q.required, schema: { type: q.type }, description: q.description,
+    // The implementation deliberately supports both API addresses. Expose both
+    // so generated clients and the Swagger UI can choose legacy or versioned use.
+    const legacyPath = r.path.replace(/:([^/]+)/g, '{$1}');
+    for (const opPath of new Set([r.fullPath, legacyPath])) {
+      const pathParams = [...opPath.matchAll(/\{([^}]+)\}/g)].map((match) => ({
+        name: match[1],
+        in: 'path' as const,
+        required: true,
+        type: 'string',
+        description: match[1] === 'locale' ? 'API locale: en, zh, my, th, or hi' : `${match[1]} path parameter`,
       }));
+      const documentedParams = [...pathParams, ...(r.querySchema ?? [])];
+      if (!spec.paths[opPath]) spec.paths[opPath] = {};
+      spec.paths[opPath][r.method] = {
+        ...op,
+        operationId: r.method.toUpperCase() + opPath.replace(/[\/{}:-]/g, '_'),
+        ...(documentedParams.length ? {
+          parameters: documentedParams.map((q) => ({
+            name: q.name, in: q.in, required: q.required, schema: { type: q.type }, description: q.description,
+          })),
+        } : {}),
+      };
     }
-    spec.paths[opPath][r.method] = op;
   }
   return spec;
 }
