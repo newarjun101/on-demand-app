@@ -158,8 +158,8 @@ const ROUTES: RouteInfo[] = [
   { method: 'post', path: '/api/events/batch',            fullPath: '/api/v1/{locale}/events/batch',            summary: 'Log a batch of events', description: 'Log up to 20 events at once', auth: 'customer' },
 
   // Boost
-  { method: 'get',  path: '/api/pricing',                fullPath: '/api/v1/{locale}/pricing',                summary: 'Boost pricing tiers',   description: 'Public list of boost pricing tiers', auth: 'public' },
-  { method: 'post', path: '/api/me/boost',                fullPath: '/api/v1/{locale}/me/boost',                summary: 'Purchase a boost',       description: 'Activate a profile boost for N days', auth: 'worker', bodySchema: 'BoostRequest' },
+  { method: 'get',  path: '/api/pricing',                fullPath: '/api/v1/{locale}/pricing',                summary: 'Boost pricing tiers',   description: 'Public list of administrator-configured boost tiers', auth: 'public' },
+  { method: 'post', path: '/api/me/boost',                fullPath: '/api/v1/{locale}/me/boost',                summary: 'Purchase a boost',       description: 'Activate an available administrator-configured boost tier. The duration and amount must exactly match a current tier.', auth: 'worker', bodySchema: 'BoostRequest' },
   { method: 'get',  path: '/api/me/boosts',               fullPath: '/api/v1/{locale}/me/boosts',               summary: 'My boosts',              description: 'List my boosts and current active status', auth: 'worker' },
 
   // Analytics
@@ -230,7 +230,7 @@ const ROUTES: RouteInfo[] = [
   ] },
   { method: 'post', path: '/api/admin/notifications/broadcast', fullPath: '/api/v1/{locale}/admin/notifications/broadcast', summary: 'Broadcast notification', description: 'Send a notification to a user segment', auth: 'admin', bodySchema: 'AdminBroadcastRequest' },
   { method: 'get', path: '/api/admin/pricing', fullPath: '/api/v1/{locale}/admin/pricing', summary: 'List boost pricing', description: 'List boost tiers for administration', auth: 'admin' },
-  { method: 'patch', path: '/api/admin/pricing/:id', fullPath: '/api/v1/{locale}/admin/pricing/{id}', summary: 'Update boost pricing', description: 'Update a boost pricing tier', auth: 'admin', bodySchema: 'AdminConfigRequest' },
+  { method: 'patch', path: '/api/admin/pricing/config', fullPath: '/api/v1/{locale}/admin/pricing/config', summary: 'Update boost pricing', description: 'Replace the administrator-configured boost tier collection', auth: 'admin', bodySchema: 'AdminBoostPricingRequest' },
   { method: 'get', path: '/api/admin/payments', fullPath: '/api/v1/{locale}/admin/payments', summary: 'List payments', description: 'List platform payments by status', auth: 'admin', querySchema: [
     { name: 'page', in: 'query', required: false, type: 'integer', description: 'Page number' },
     { name: 'pageSize', in: 'query', required: false, type: 'integer', description: 'Page size' },
@@ -488,6 +488,14 @@ const SCHEMAS: Record<string, any> = {
       paymentMethod:{ type: 'string', enum: ['CASH_ON_COMPLETION', 'KBZPAY', 'WAVE_MONEY', 'AYA_PAY', 'STRIPE'] },
     },
   },
+  BoostTier: {
+    type: 'object', required: ['id', 'label', 'days', 'amount', 'boostFactor'],
+    properties: {
+      id: { type: 'string', example: 'tier_7d' }, label: { type: 'string', example: '7 days' },
+      days: { type: 'integer', minimum: 1, maximum: 365 }, amount: { type: 'integer', minimum: 1000, description: 'MMK' },
+      boostFactor: { type: 'number', minimum: 1, example: 2.5 },
+    },
+  },
   AdminReasonRequest: {
     type: 'object',
     required: ['reason'],
@@ -547,6 +555,10 @@ const SCHEMAS: Record<string, any> = {
     type: 'object',
     additionalProperties: true,
     description: 'Configuration fields accepted by the selected administration endpoint.',
+  },
+  AdminBoostPricingRequest: {
+    type: 'object', required: ['boostTiers'],
+    properties: { boostTiers: { type: 'array', minItems: 1, maxItems: 20, items: { $ref: '#/components/schemas/BoostTier' } } },
   },
   AdminBroadcastRequest: {
     type: 'object',

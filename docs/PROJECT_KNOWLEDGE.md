@@ -183,6 +183,12 @@ purchase and `WorkerProfile` carries the active lookup fields. Customer events
 feed personalized worker recommendations and boost targeting. Do not change
 event types or source values casually: they are the analytics vocabulary.
 
+Boost tiers are dynamic configuration, not code constants. They are persisted
+as `PlatformConfig.boostTiers`, edited in Admin through
+`PATCH /api/admin/pricing/config`, read publicly through `GET /api/pricing`,
+and validated again when a worker purchases `/api/me/boost`. The default tier
+set is a compatibility fallback until an administrator saves a configuration.
+
 ## 5. Data model map
 
 | Domain | Principal models | Notes |
