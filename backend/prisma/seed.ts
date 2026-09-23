@@ -142,6 +142,8 @@ async function main() {
   await prisma.message.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.favorite.deleteMany();
+  await prisma.customerEvent.deleteMany();
+  await prisma.boost.deleteMany();
   await prisma.workerService.deleteMany();
   await prisma.workerDocument.deleteMany();
   await prisma.portfolioImage.deleteMany();
@@ -294,6 +296,104 @@ async function main() {
   // Admin portal: permissions, roles, and the default PlatformConfig.
   // -------------------------------------------------------------------
   await bootstrapAdminPortal();
+  await seedDemoOperations();
+}
+
+async function seedDemoOperations() {
+  const customer = await prisma.user.findUniqueOrThrow({ where: { email: 'customer@demo.com' } });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: 'admin@demo.com' } });
+  const plumber = await prisma.user.findUniqueOrThrow({ where: { email: 'plumber@demo.com' }, include: { workerProfile: true } });
+  const electrician = await prisma.user.findUniqueOrThrow({ where: { email: 'electrician@demo.com' }, include: { workerProfile: true } });
+  const cleaner = await prisma.user.findUniqueOrThrow({ where: { email: 'cleaner@demo.com' }, include: { workerProfile: true } });
+  const plumberService = await prisma.service.findUniqueOrThrow({ where: { slug: 'plumber' } });
+  const electricianService = await prisma.service.findUniqueOrThrow({ where: { slug: 'electrician' } });
+  const cleanerService = await prisma.service.findUniqueOrThrow({ where: { slug: 'cleaner' } });
+  const now = new Date();
+  const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+  // Three request states make the customer and worker dashboards useful immediately.
+  const openRequest = await prisma.serviceRequest.create({
+    data: {
+      customerId: customer.id, serviceId: plumberService.id,
+      description: 'Kitchen pipe is leaking under the sink and needs urgent repair.',
+      city: 'Yangon', addressLine: 'No. 5, Pyay Road, Kamayut', latitude: 16.805, longitude: 96.13,
+      schedule: 'AS_SOON_AS_POSSIBLE', minBudget: 10000, maxBudget: 40000, status: 'FINDING_WORKERS',
+    },
+  });
+  await prisma.quote.createMany({
+    data: [
+      { requestId: openRequest.id, workerId: plumber.id, laborAmount: 18000, materialsAmount: 5000, totalAmount: 23000, estimatedMinutes: 90, message: 'I can arrive within one hour.', status: 'PENDING' },
+      { requestId: openRequest.id, workerId: electrician.id, laborAmount: 22000, materialsAmount: 3000, totalAmount: 25000, estimatedMinutes: 120, message: 'Available this afternoon.', status: 'PENDING' },
+    ],
+  });
+
+  const completedRequest = await prisma.serviceRequest.create({
+    data: {
+      customerId: customer.id, serviceId: electricianService.id,
+      description: 'Install two ceiling lights and check the living room wiring.',
+      city: 'Yangon', addressLine: 'Bahan Township', latitude: 16.8123, longitude: 96.157,
+      schedule: 'CUSTOM_DATE', scheduledAt: daysAgo(10), minBudget: 30000, maxBudget: 60000,
+      status: 'QUOTE_ACCEPTED', createdAt: daysAgo(12),
+    },
+  });
+  const completedQuote = await prisma.quote.create({
+    data: { requestId: completedRequest.id, workerId: electrician.id, laborAmount: 40000, materialsAmount: 5000, totalAmount: 45000, estimatedMinutes: 180, message: 'Parts included.', status: 'ACCEPTED', createdAt: daysAgo(11) },
+  });
+  const completedBooking = await prisma.booking.create({
+    data: {
+      requestId: completedRequest.id, quoteId: completedQuote.id, customerId: customer.id, workerId: electrician.id,
+      status: 'COMPLETED', scheduledAt: daysAgo(10), startedAt: daysAgo(10), completedAt: daysAgo(9),
+      subtotal: 45000, platformFee: 4500, workerEarnings: 40500, total: 45000, commissionPercent: 10, createdAt: daysAgo(11),
+    },
+  });
+  await prisma.payment.create({ data: { bookingId: completedBooking.id, payerId: customer.id, receiverId: electrician.id, method: 'CASH_ON_COMPLETION', status: 'PAID', amount: 45000, paidAt: daysAgo(9) } });
+  await prisma.review.create({ data: { bookingId: completedBooking.id, authorId: customer.id, subjectId: electrician.id, rating: 5, comment: 'Fast, careful, and very professional.', photos: [], createdAt: daysAgo(8) } });
+
+  const disputedRequest = await prisma.serviceRequest.create({
+    data: {
+      customerId: customer.id, serviceId: cleanerService.id,
+      description: 'Deep cleaning for an apartment before moving in.', city: 'Yangon', addressLine: 'Kamayut Township', latitude: 16.805, longitude: 96.13,
+      schedule: 'TODAY', status: 'BOOKING_CONFIRMED', createdAt: daysAgo(4),
+    },
+  });
+  const disputedQuote = await prisma.quote.create({
+    data: { requestId: disputedRequest.id, workerId: cleaner.id, laborAmount: 30000, materialsAmount: 5000, totalAmount: 35000, estimatedMinutes: 240, message: 'Includes kitchen and bathroom deep clean.', status: 'ACCEPTED', createdAt: daysAgo(3) },
+  });
+  const disputedBooking = await prisma.booking.create({
+    data: { requestId: disputedRequest.id, quoteId: disputedQuote.id, customerId: customer.id, workerId: cleaner.id, status: 'DISPUTED', scheduledAt: daysAgo(2), subtotal: 35000, platformFee: 3500, workerEarnings: 31500, total: 35000, commissionPercent: 10, createdAt: daysAgo(3) },
+  });
+  await prisma.dispute.create({ data: { bookingId: disputedBooking.id, openerId: customer.id, reason: 'QUALITY', description: 'Several rooms were not cleaned to the agreed standard.', status: 'OPEN', createdAt: daysAgo(1) } });
+
+  // Pending and approved KYC documents populate the admin review workflow.
+  await prisma.kycDocument.create({ data: { workerProfileId: plumber.workerProfile!.id, type: 'NATIONAL_ID', status: 'PENDING', fileUrl: '/uploads/kyc/plumber-national-id.jpg', fileName: 'plumber-national-id.jpg', workerNotes: 'Please review my national ID.' } });
+  await prisma.kycDocument.create({ data: { workerProfileId: electrician.workerProfile!.id, type: 'DRIVER_LICENSE', status: 'APPROVED', fileUrl: '/uploads/kyc/electrician-license.jpg', fileName: 'electrician-license.jpg', reviewedBy: admin.id, reviewedAt: daysAgo(5) } });
+
+  await prisma.favorite.create({ data: { userId: customer.id, workerProfileId: plumber.workerProfile!.id } });
+  await prisma.favorite.create({ data: { userId: customer.id, workerProfileId: cleaner.workerProfile!.id } });
+  await prisma.boost.create({ data: { workerProfileId: plumber.workerProfile!.id, amount: 9000, durationDays: 7, startsAt: daysAgo(2), expiresAt: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), paymentMethod: 'CASH_ON_COMPLETION', status: 'ACTIVE' } });
+  await prisma.workerProfile.update({ where: { id: plumber.workerProfile!.id }, data: { isBoosted: true, hasUsedBoost: true, boostExpiresAt: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000) } });
+
+  await prisma.customerEvent.createMany({ data: [
+    { userId: customer.id, type: 'search', city: 'Yangon', query: 'plumber', source: 'search', createdAt: daysAgo(3) },
+    { userId: customer.id, type: 'view_worker', workerId: plumber.workerProfile!.id, source: 'boost', createdAt: daysAgo(2) },
+    { userId: customer.id, type: 'favorite', workerId: plumber.workerProfile!.id, source: 'profile', createdAt: daysAgo(2) },
+    { userId: customer.id, type: 'book', workerId: electrician.workerProfile!.id, source: 'search', createdAt: daysAgo(9) },
+    { userId: customer.id, type: 'chat', workerId: cleaner.workerProfile!.id, source: 'profile', createdAt: daysAgo(1) },
+  ] });
+
+  const conversation = await prisma.conversation.create({ data: { customerId: customer.id, workerId: plumber.id, requestId: openRequest.id, lastMessageAt: daysAgo(1), workerUnreadCount: 1 } });
+  await prisma.message.createMany({ data: [
+    { conversationId: conversation.id, senderId: customer.id, text: 'Hi, can you come today?', readAt: daysAgo(1), createdAt: daysAgo(1) },
+    { conversationId: conversation.id, senderId: plumber.id, text: 'Yes, I can arrive in about one hour.', createdAt: daysAgo(1) },
+  ] });
+  await prisma.notification.createMany({ data: [
+    { userId: customer.id, type: 'QUOTE', title: 'New quote received', body: 'A plumber sent a quote for your kitchen repair.', data: { requestId: openRequest.id } },
+    { userId: customer.id, type: 'BOOKING', title: 'Booking completed', body: 'Your electrical repair booking is complete.', data: { bookingId: completedBooking.id }, readAt: daysAgo(7) },
+    { userId: plumber.id, type: 'REQUEST', title: 'New nearby request', body: 'A customer needs a plumber in Yangon.', data: { requestId: openRequest.id } },
+    { userId: admin.id, type: 'WORKER_APPROVAL', title: 'KYC document pending', body: 'A plumber submitted a national ID for review.', data: { workerProfileId: plumber.workerProfile!.id } },
+  ] });
+
+  console.log('  Operations seeded: requests, quotes, bookings, payments, reviews, disputes, KYC, chat, notifications, favorites, events, boosts');
 }
 
 async function bootstrapAdminPortal() {

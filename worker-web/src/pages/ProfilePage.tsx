@@ -6,11 +6,10 @@ import toast from 'react-hot-toast';
 import { Camera, Edit, MapPin, Plus, Save, Trash2, X } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { userApi, workerApi } from '@/api/endpoints';
+import { fileApi, userApi, workerApi } from '@/api/endpoints';
 import { extractError } from '@/api/client';
 import { Avatar, Badge, Button, Card, Input, Spinner, Textarea } from '@/components/UI';
 import { formatMmk, resolveImageUrl } from '@/utils/format';
-import { API_BASE_URL } from '@/utils/format';
 import { zStringRequired, zStringOptional, zNumberOptional } from '@/utils/zod-helpers';
 
 const schema = z.object({
@@ -42,20 +41,8 @@ type FormValues = z.infer<typeof schema>;
 async function uploadFile(file: File): Promise<string> {
   if (!file.type.startsWith('image/')) throw new Error('Please choose an image');
   if (file.size > 8 * 1024 * 1024) throw new Error('Image must be smaller than 8 MB');
-  const fd = new FormData();
-  fd.append('file', file);
-  const token = localStorage.getItem('lsm_worker_access_token');
-  const res = await fetch(`${API_BASE_URL}/files/upload`, {
-    method: 'POST',
-    headers: {
-      'X-App-Origin': 'WORKER_WEB',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: fd,
-  });
-  const json = await res.json();
-  if (!res.ok || !json.success) throw new Error(json?.error?.message ?? 'Upload failed');
-  return json.data.url as string;
+  const { url } = await fileApi.upload(file);
+  return url;
 }
 
 export function ProfilePage() {

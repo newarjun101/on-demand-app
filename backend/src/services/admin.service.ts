@@ -285,8 +285,14 @@ export const adminService = {
     });
     // If APPROVE, and all required docs for this worker are approved, promote them
     if (body.action === 'APPROVE') {
-      const pending = await prisma.kycDocument.count({ where: { workerProfileId: doc.workerProfileId, status: 'PENDING', blocksApproval: true } });
-      if (pending === 0) {
+      const documents = await prisma.kycDocument.findMany({ where: { workerProfileId: doc.workerProfileId, blocksApproval: true } });
+      const approvedTypes = new Set(documents.filter((item) => item.status === 'APPROVED').map((item) => item.type));
+      const hasSelfie = approvedTypes.has('SELFIE');
+      const hasNrc = approvedTypes.has('NATIONAL_ID_FRONT') && approvedTypes.has('NATIONAL_ID_BACK');
+      const hasPassport = approvedTypes.has('PASSPORT');
+      const hasRequiredIdentitySet = hasSelfie && (hasNrc || hasPassport);
+      const pending = documents.some((item) => item.status === 'PENDING');
+      if (!pending && hasRequiredIdentitySet) {
         await prisma.workerProfile.update({
           where: { id: doc.workerProfileId },
           data: { verificationStatus: 'APPROVED', rejectionReason: null, verifiedAt: new Date() },

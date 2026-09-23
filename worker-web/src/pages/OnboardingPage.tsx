@@ -6,11 +6,11 @@ import { Check, ChevronRight, Wrench, Camera, Clock, MapPin, FileText, Banknote,
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
-import { categoryApi, workerApi } from '@/api/endpoints';
+import { categoryApi, fileApi, workerApi } from '@/api/endpoints';
 import { Badge, Button, Card, Input, Spinner, Textarea } from '@/components/UI';
 import { useI18n } from '@/i18n';
 
-type Step = 'profile' | 'services' | 'availability' | 'review';
+type Step = 'profile' | 'services' | 'availability' | 'kyc' | 'review';
 
 export function OnboardingPage() {
   const { t } = useI18n();
@@ -31,6 +31,7 @@ export function OnboardingPage() {
     { key: 'profile',      label: t('onboarding.stepProfile'),     icon: Camera },
     { key: 'services',     label: t('onboarding.stepServices'),    icon: Banknote },
     { key: 'availability', label: t('onboarding.stepAvailability'), icon: Clock },
+    { key: 'kyc',          label: t('onboarding.stepKyc'),          icon: FileText },
     { key: 'review',       label: t('onboarding.stepReview'),      icon: BadgeCheck },
   ];
 
@@ -61,7 +62,8 @@ export function OnboardingPage() {
       <div className="mt-6">
         {step === 'profile' && <ProfileStep onNext={() => setStep('services')} />}
         {step === 'services' && <ServicesStep onNext={() => setStep('availability')} onBack={() => setStep('profile')} />}
-        {step === 'availability' && <AvailabilityStep onNext={() => setStep('review')} onBack={() => setStep('services')} />}
+        {step === 'availability' && <AvailabilityStep onNext={() => setStep('kyc')} onBack={() => setStep('services')} />}
+        {step === 'kyc' && <KycStep onNext={() => setStep('review')} onBack={() => setStep('availability')} />}
         {step === 'review' && <ReviewStep onSubmitted={() => { queryClient.invalidateQueries({ queryKey: ['me'] }); navigate('/dashboard'); }} />}
       </div>
     </div>
@@ -336,6 +338,51 @@ function ReviewStep({ onSubmitted }: { onSubmitted: () => void }) {
       )}
       <div className="mt-6">
         <Button onClick={onSubmitted}>{t('onboarding.goToDashboard')}</Button>
+      </div>
+    </Card>
+  );
+}
+
+function KycStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  const { t } = useI18n();
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [files, setFiles] = useState<Record<string, File | null>>({ SELFIE: null, NATIONAL_ID_FRONT: null, NATIONAL_ID_BACK: null, PASSPORT: null });
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    const selected = Object.entries(files).filter((entry): entry is [string, File] => entry[1] !== null);
+    if (!selected.length) return;
+    setSaving(true);
+    try {
+      for (const [type, file] of selected) {
+        const uploaded = await fileApi.upload(file);
+        await workerApi.submitKyc({ type, fileUrl: uploaded.url, fileName: file.name, documentNumber: documentNumber || undefined });
+      }
+      toast.success(t('onboarding.kycSubmitted'));
+      onNext();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error?.message ?? error?.message ?? t('errors.generic'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="p-6">
+      <h2 className="font-semibold text-gray-900">{t('onboarding.kycTitle')}</h2>
+      <p className="text-sm text-gray-500 mt-1">{t('onboarding.kycHint')}</p>
+      <div className="mt-4 space-y-4">
+        <Input label={t('onboarding.documentNumber')} value={documentNumber} onChange={(event) => setDocumentNumber(event.target.value)} />
+        {[
+          ['SELFIE', t('onboarding.selfie')],
+          ['NATIONAL_ID_FRONT', t('onboarding.nrcFront')],
+          ['NATIONAL_ID_BACK', t('onboarding.nrcBack')],
+          ['PASSPORT', t('onboarding.passport')],
+        ].map(([type, label]) => <Input key={type} type="file" accept="image/*,.pdf" label={label} onChange={(event) => setFiles((current) => ({ ...current, [type]: event.target.files?.[0] ?? null }))} />)}
+      </div>
+      <div className="mt-6 flex justify-between">
+        <Button variant="ghost" onClick={onBack}>{t('common.back')}</Button>
+        <Button onClick={submit} disabled={!Object.values(files).some(Boolean) || saving}>{saving ? <Spinner size={16} /> : t('onboarding.submitDocument')}</Button>
       </div>
     </Card>
   );

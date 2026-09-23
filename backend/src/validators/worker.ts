@@ -75,3 +75,11 @@ export const setOnlineSchema = z.object({
   isOnline: z.boolean(),
   isAcceptingJobs: z.boolean().optional(),
 });
+
+export const submitKycSchema = z.object({
+  type: z.enum(['SELFIE', 'NATIONAL_ID_FRONT', 'NATIONAL_ID_BACK', 'NATIONAL_ID', 'PASSPORT', 'DRIVER_LICENSE', 'BUSINESS_LICENSE', 'ADDRESS_PROOF', 'OTHER']),
+  fileUrl: z.string().min(1),
+  fileName: z.string().min(1).max(255),
+  documentNumber: z.string().max(100).optional(),
+  workerNotes: z.string().max(1000).optional(),
+});

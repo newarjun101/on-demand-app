@@ -94,6 +94,7 @@ const ROUTES: RouteInfo[] = [
   { method: 'get',  path: '/api/workers/:id',      fullPath: '/api/v1/{locale}/workers/{id}',      summary: 'Get worker profile', description: 'Public worker profile with services, portfolio, reviews', auth: 'public' },
   { method: 'get',  path: '/api/workers/me/profile', fullPath: '/api/v1/{locale}/workers/me/profile', summary: 'My worker profile',  description: 'Current worker profile with services, portfolio, availability', auth: 'worker' },
   { method: 'patch',path: '/api/workers/me/profile', fullPath: '/api/v1/{locale}/workers/me/profile', summary: 'Update worker profile', description: 'Update bio, city, address, lat/lng, service radius, emergency availability, etc.', auth: 'worker', bodySchema: 'WorkerProfileRequest' },
+  { method: 'post', path: '/api/workers/me/kyc', fullPath: '/api/v1/{locale}/workers/me/kyc', summary: 'Submit KYC document', description: 'Submit a selfie, NRC front/back, passport, or license document for administrator review', auth: 'worker', bodySchema: 'KycSubmissionRequest' },
   { method: 'post', path: '/api/workers/me/services',     fullPath: '/api/v1/{locale}/workers/me/services',     summary: 'Add/update a service', description: 'Add or update a service the worker offers, with pricing', auth: 'worker', bodySchema: 'WorkerServiceRequest' },
   { method: 'delete',path: '/api/workers/me/services/:serviceId', fullPath: '/api/v1/{locale}/workers/me/services/{serviceId}', summary: 'Remove a service', description: 'Stop offering a service', auth: 'worker' },
   { method: 'put',  path: '/api/workers/me/availability', fullPath: '/api/v1/{locale}/workers/me/availability', summary: 'Update availability', description: 'Set working hours (and optional time slots) for each day', auth: 'worker', bodySchema: 'AvailabilityRequest' },
@@ -544,6 +545,17 @@ const SCHEMAS: Record<string, any> = {
     properties: {
       resolution: { type: 'string', minLength: 1 },
       refundAmount: { type: 'integer', minimum: 0 },
+    },
+  },
+  KycSubmissionRequest: {
+    type: 'object',
+    required: ['type', 'fileUrl', 'fileName'],
+    properties: {
+      type: { type: 'string', enum: ['SELFIE', 'NATIONAL_ID_FRONT', 'NATIONAL_ID_BACK', 'NATIONAL_ID', 'PASSPORT', 'DRIVER_LICENSE', 'BUSINESS_LICENSE', 'ADDRESS_PROOF', 'OTHER'] },
+      fileUrl: { type: 'string' },
+      fileName: { type: 'string', maxLength: 255 },
+      documentNumber: { type: 'string', maxLength: 100 },
+      workerNotes: { type: 'string', maxLength: 1000 },
     },
   },
 };

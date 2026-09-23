@@ -14,3 +14,12 @@ export const sendMessageSchema = z.object({
 export const markReadSchema = z.object({
   conversationId: z.string().uuid(),
 });
+
+export const chatPaginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+export const conversationIdParamsSchema = z.object({
+  id: z.string().uuid(),
+});
