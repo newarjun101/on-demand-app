@@ -235,7 +235,7 @@ export function ServicesPage() {
                     return <WorkerCard key={w.id} worker={w} source={src} />;
                   })}
                 </div>
-                {workers && workers.total > pageSize && (
+                {workers && (
                   <Pagination
                     page={page}
                     pageSize={pageSize}

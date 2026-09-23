@@ -15,7 +15,6 @@ export function Pagination({
   windowSize?: number;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  if (totalPages <= 1) return null;
 
   const pages: Array<number | '...'> = [];
   const push = (p: number | '...') => pages.push(p);

@@ -6,11 +6,15 @@ import { Badge, Card, EmptyState, Skeleton } from '@/components/UI';
 import { formatDate, formatMmk } from '@/utils/format';
 import { BOOKING_STATUS_LABELS } from '@/utils/statuses';
 import clsx from 'clsx';
+import { Pagination } from '@/components/Pagination';
+
+const PAGE_SIZE = 20;
 
 export function EarningsPage() {
   const [range, setRange] = useState<'today' | 'week' | 'month' | 'all'>('all');
+  const [page, setPage] = useState(1);
   const { data: earnings, isLoading } = useQuery({ queryKey: ['earnings'], queryFn: earningsApi.summary });
-  const { data: jobs } = useQuery({ queryKey: ['jobs'], queryFn: () => bookingApi.listJobs(1, 100) });
+  const { data: jobs } = useQuery({ queryKey: ['jobs', page], queryFn: () => bookingApi.listJobs(page, PAGE_SIZE) });
 
   const items = (jobs?.items ?? []).filter((j) => j.status === 'COMPLETED');
   const totals = earnings ?? { today: 0, thisWeek: 0, thisMonth: 0, allTime: 0, currency: 'MMK' };
@@ -65,6 +69,7 @@ export function EarningsPage() {
           </div>
         )}
       </Card>
+      {jobs && <Pagination page={page} pageSize={PAGE_SIZE} total={jobs.total} onChange={setPage} />}
     </div>
   );
 }

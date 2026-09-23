@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Inbox, Briefcase, DollarSign, MessageCircle } from 'lucide-react';
@@ -5,6 +6,9 @@ import { notificationApi } from '@/api/endpoints';
 import { Card, EmptyState, Skeleton } from '@/components/UI';
 import { timeAgo } from '@/utils/format';
 import { useSocketEvent } from '@/hooks/useSocket';
+import { Pagination } from '@/components/Pagination';
+
+const PAGE_SIZE = 20;
 
 const ICONS: Record<string, any> = {
   REQUEST: Inbox,
@@ -19,8 +23,9 @@ const ICONS: Record<string, any> = {
 
 export function NotificationsPage() {
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ['notifications'], queryFn: () => notificationApi.list(1, 50), refetchInterval: 10000 });
+  const { data, isLoading } = useQuery({ queryKey: ['notifications', page], queryFn: () => notificationApi.list(page, PAGE_SIZE), refetchInterval: 10000 });
   useSocketEvent('notification_created', () => queryClient.invalidateQueries({ queryKey: ['notifications'] }));
   const markAll = useMutation({ mutationFn: () => notificationApi.markAllRead(), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }) });
   const markOne = useMutation({ mutationFn: (id: string) => notificationApi.markRead(id), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }) });
@@ -70,6 +75,7 @@ export function NotificationsPage() {
           })
         )}
       </div>
+      {data && <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />}
     </div>
   );
 }

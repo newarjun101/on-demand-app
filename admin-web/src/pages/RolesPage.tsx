@@ -6,11 +6,14 @@ import { useI18n } from '@/i18n';
 import { adminApi, AdminRole, Permission } from '@/api/endpoints';
 import { extractError } from '@/api/client';
 import { Badge, Button, Card, EmptyState, Input, Skeleton, Spinner, Textarea } from '@/components/UI';
+import { Pagination } from '@/components/Pagination';
 
 export function RolesPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Partial<AdminRole> | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
   const { data: roles, isLoading } = useQuery({ queryKey: ['admin-roles'], queryFn: () => adminApi.listRoles() });
   const { data: permissions } = useQuery({ queryKey: ['admin-permissions'], queryFn: () => adminApi.getPermissions() });
   const saveMut = useMutation({
@@ -41,8 +44,9 @@ export function RolesPage() {
         </Button>
       </div>
       {isLoading || !roles ? <Skeleton className="h-32" /> : (
+        <>
         <div className="grid md:grid-cols-2 gap-3">
-          {roles.map((r: any) => (
+          {roles.slice((page - 1) * pageSize, page * pageSize).map((r: any) => (
             <Card key={r.id} className="p-4">
               <div className="flex items-center gap-2">
                 <div className="font-semibold flex-1">{r.name}</div>
@@ -61,6 +65,8 @@ export function RolesPage() {
             </Card>
           ))}
         </div>
+        <Pagination page={page} pageSize={pageSize} total={roles.length} onPageChange={setPage} />
+        </>
       )}
 
       {editing && (

@@ -72,6 +72,7 @@ export type PlatformConfig = {
   enableChat: boolean; enableBookings: boolean; enableBoosts: boolean; enableAnalytics: boolean;
   termsOfServiceUrl: string | null; privacyPolicyUrl: string | null;
 };
+export type BoostTier = { id: string; label: string; days: number; amount: number; boostFactor: number };
 
 export type AuditEntry = {
   id: string; actorId: string; actorName: string; action: string;
@@ -108,7 +109,8 @@ export const adminApi = {
   createCategory: (b: any) => apiClient.post('/admin/categories', b).then((r) => r.data),
   updateCategory: (id: string, body: any) => apiClient.patch(`/admin/categories/${id}`, body).then((r) => r.data),
   deleteCategory: (id: string) => apiClient.delete(`/admin/categories/${id}`).then((r) => r.data),
-  getPricing: () => apiClient.get('/admin/pricing').then((r) => r.data.data),
+  getPricing: (): Promise<{ commissionPercent: number; defaultCurrency: string; boostTiers: BoostTier[] }> => apiClient.get('/admin/pricing').then((r) => r.data.data),
+  updatePricing: (body: { boostTiers: BoostTier[] }) => apiClient.patch('/admin/pricing/config', body).then((r) => r.data.data),
   listPayments: (params: { page?: number; pageSize?: number; status?: string } = {}) =>
     apiClient.get('/admin/payments', { params }).then((r) => r.data.data),
   listRoles: () => apiClient.get('/admin/roles').then((r) => r.data.data),

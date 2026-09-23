@@ -41,7 +41,7 @@ export function FavoritesPage() {
             action={<Link to="/services" className="text-brand-700">Browse workers</Link>}
           />
         ) : (
-          data!.map((f) => (
+          data!.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((f) => (
             <Card key={f.id} className="p-4 flex items-center gap-3">
               <Avatar src={f.workerProfile.user.avatarUrl} name={f.workerProfile.user.fullName} size={48} />
               <div className="flex-1 min-w-0">
@@ -61,6 +61,7 @@ export function FavoritesPage() {
           ))
         )}
       </div>
+      {data && <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onChange={setPage} />}
     </div>
   );
 }

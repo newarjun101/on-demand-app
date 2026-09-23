@@ -3,6 +3,10 @@ import { errors } from '../utils/api';
 import { emitToUser } from '../sockets/io';
 
 export const boostService = {
+  async pricing() {
+    const config = await prisma.platformConfig.findUnique({ where: { id: 'singleton' } });
+    return { tiers: configuredTiers(config?.boostTiers) };
+  },
   /**
    * Activate a boost for a worker.
    * For MVP, payment is mocked (CASH_ON_COMPLETION) and boost is free.
@@ -10,12 +14,9 @@ export const boostService = {
    * payment before flipping isBoosted on the profile.
    */
   async purchaseBoost(workerUserId: string, input: { durationDays: number; amount: number; paymentMethod?: string }) {
-    if (input.durationDays < 1 || input.durationDays > 30) {
-      throw errors.badRequest('Duration must be 1-30 days');
-    }
-    if (input.amount < 1000) {
-      throw errors.badRequest('Minimum boost price is 1,000 MMK');
-    }
+    const { tiers } = await this.pricing();
+    const tier = tiers.find((item) => item.days === input.durationDays && item.amount === input.amount);
+    if (!tier) throw errors.badRequest('Select one of the available boost tiers');
     const profile = await prisma.workerProfile.findUnique({ where: { userId: workerUserId } });
     if (!profile) throw errors.notFound('Worker profile not found');
     if (profile.verificationStatus !== 'APPROVED') {
@@ -82,15 +83,18 @@ export const boostService = {
     return expired.length;
   },
 
-  // Pricing tiers (in MMK) — could be configured per region in the future.
-  pricing() {
-    return {
-      tiers: [
-        { days: 3, amount: 5000, label: '3 days', boostFactor: 2 },
-        { days: 7, amount: 9000, label: '7 days', boostFactor: 2.5 },
-        { days: 14, amount: 15000, label: '14 days', boostFactor: 3 },
-        { days: 30, amount: 25000, label: '30 days', boostFactor: 4 },
-      ],
-    };
-  },
 };
+
+export type BoostTier = { id: string; days: number; amount: number; label: string; boostFactor: number };
+
+export const DEFAULT_BOOST_TIERS: BoostTier[] = [
+  { id: 'tier_3d', days: 3, amount: 5000, label: '3 days', boostFactor: 2 },
+  { id: 'tier_7d', days: 7, amount: 9000, label: '7 days', boostFactor: 2.5 },
+  { id: 'tier_14d', days: 14, amount: 15000, label: '14 days', boostFactor: 3 },
+  { id: 'tier_30d', days: 30, amount: 25000, label: '30 days', boostFactor: 4 },
+];
+
+export function configuredTiers(value: unknown): BoostTier[] {
+  if (!Array.isArray(value) || value.length === 0) return DEFAULT_BOOST_TIERS;
+  return value as BoostTier[];
+}

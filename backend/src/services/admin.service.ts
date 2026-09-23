@@ -6,6 +6,7 @@ import { prisma } from '../config/prisma';
 import { Prisma } from '@prisma/client';
 import { errors } from '../utils/api';
 import { hashPassword } from '../utils/password';
+import { configuredTiers } from './boost.service';
 
 async function hash(p: string) {
   return hashPassword(p);
@@ -542,21 +543,15 @@ export const adminService = {
 
   // -------- boost tiers / pricing --------
   async getPricing() {
-    const config = await prisma.platformConfig.findFirst();
-    const boostTiers = [
-      { id: 'tier_3d', days: 3, price: 5000, factor: 2, label: '3 days' },
-      { id: 'tier_7d', days: 7, price: 9000, factor: 2.5, label: '7 days' },
-      { id: 'tier_14d', days: 14, price: 15000, factor: 3, label: '14 days' },
-      { id: 'tier_30d', days: 30, price: 25000, factor: 4, label: '30 days' },
-    ];
-    return { commissionPercent: config?.commissionPercent ?? 10, defaultCurrency: config?.defaultCurrency ?? 'MMK', boostTiers };
+    const config = await this.getConfig();
+    return { commissionPercent: config.commissionPercent, defaultCurrency: config.defaultCurrency, boostTiers: configuredTiers(config.boostTiers) };
   },
   async updatePricing(id: string, body: any) {
     if (id === 'config') {
       const data = await prisma.platformConfig.upsert({
         where: { id: 'singleton' },
-        update: { commissionPercent: body.commissionPercent, defaultCurrency: body.defaultCurrency },
-        create: { commissionPercent: body.commissionPercent ?? 10, defaultCurrency: body.defaultCurrency ?? 'MMK' },
+        update: { commissionPercent: body.commissionPercent, defaultCurrency: body.defaultCurrency, boostTiers: body.boostTiers },
+        create: { commissionPercent: body.commissionPercent ?? 10, defaultCurrency: body.defaultCurrency ?? 'MMK', boostTiers: body.boostTiers },
       });
       return data;
     }

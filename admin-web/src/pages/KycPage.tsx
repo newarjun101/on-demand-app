@@ -8,6 +8,7 @@ import { adminApi, KycDocument } from '@/api/endpoints';
 import { extractError } from '@/api/client';
 import { Avatar, Badge, Button, Card, EmptyState, Skeleton, Textarea } from '@/components/UI';
 import { timeAgo } from '@/utils/format';
+import { Pagination } from '@/components/Pagination';
 
 export function KycPage() {
   const { t } = useI18n();
@@ -81,6 +82,7 @@ export function KycPage() {
           })}
         </div>
       )}
+      {data && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />}
 
       {reviewModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
