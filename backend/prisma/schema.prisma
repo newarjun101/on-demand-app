@@ -717,6 +717,7 @@ model PlatformConfig {
   enableBookings     Boolean  @default(true)
   enableBoosts       Boolean  @default(true)
   enableAnalytics    Boolean  @default(true)
+  boostTiers         Json?
   termsOfServiceUrl String?
   privacyPolicyUrl  String?
   updatedAt        DateTime @updatedAt

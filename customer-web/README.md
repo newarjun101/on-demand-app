@@ -88,6 +88,14 @@ Edit each locale file in `src/i18n/locales/`. Use **dot notation** for nesting:
 }
 ```
 
+## Pagination
+
+List pages use `src/components/Pagination.tsx`. Keep the control visible after
+loaded results, including a one-page result set, so customers have a consistent
+navigation pattern. Prefer server pagination when an endpoint returns
+`items`, `total`, `page`, and `pageSize`; use local slicing only for legacy
+endpoints that return an unpaginated collection.
+
 Access with `t('myPage.title')` or `t('myPage.button.save')`.
 
 For values with placeholders, use `{{name}}`:

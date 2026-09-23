@@ -53,7 +53,7 @@ export function JobsPage() {
           ))
         )}
       </div>
-      {data && data.total > PAGE_SIZE && (
+      {data && (
         <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onChange={setPage} />
       )}
     </div>

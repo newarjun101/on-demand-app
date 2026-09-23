@@ -8,6 +8,7 @@ import { extractError } from '@/api/client';
 import { Badge, Button, Card, EmptyState, Input, Select, Skeleton, Spinner } from '@/components/UI';
 import { formatMmk, timeAgo } from '@/utils/format';
 import { useAdminAuth } from '@/contexts/AuthContext';
+import { Pagination } from '@/components/Pagination';
 
 export function BookingsPage() {
   const { t } = useI18n();
@@ -96,6 +97,7 @@ export function BookingsPage() {
           </table>
         </Card>
       )}
+      {data && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />}
 
       {refundModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">

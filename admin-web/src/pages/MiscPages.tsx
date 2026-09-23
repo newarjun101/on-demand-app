@@ -8,6 +8,7 @@ import { extractError } from '@/api/client';
 import { Avatar, Badge, Button, Card, EmptyState, Skeleton } from '@/components/UI';
 import { useAdminAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/api/client';
+import { Pagination } from '@/components/Pagination';
 
 // ─── Reviews ───────────────────────────────────────────────────────
 export function ReviewsPage() {
@@ -75,16 +76,7 @@ export function ReviewsPage() {
           ))}
         </div>
       )}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">{total} reviews total</span>
-          <div className="flex gap-1">
-            <Button disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft size={14} /></Button>
-            <span className="px-3 py-1.5 text-sm">{page}/{totalPages}</span>
-            <Button disabled={page >= totalPages} onClick={() => setPage(page + 1)}><ChevronRight size={14} /></Button>
-          </div>
-        </div>
-      )}
+      <Pagination page={page} pageSize={15} total={total} onPageChange={setPage} />
     </div>
   );
 }
@@ -162,16 +154,7 @@ export function DisputesPage() {
           ))}
         </div>
       )}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">{total} disputes total</span>
-          <div className="flex gap-1">
-            <Button disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft size={14} /></Button>
-            <span className="px-3 py-1.5 text-sm">{page}/{totalPages}</span>
-            <Button disabled={page >= totalPages} onClick={() => setPage(page + 1)}><ChevronRight size={14} /></Button>
-          </div>
-        </div>
-      )}
+      <Pagination page={page} pageSize={15} total={total} onPageChange={setPage} />
       {resolveModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md p-6 space-y-4">
@@ -230,16 +213,7 @@ export function NotificationsPage() {
           ))}
         </div>
       )}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">{total} notifications</span>
-          <div className="flex gap-1">
-            <Button disabled={page <= 1} onClick={() => setPage(page - 1)}><ChevronLeft size={14} /></Button>
-            <span className="px-3 py-1.5 text-sm">{page}/{totalPages}</span>
-            <Button disabled={page >= totalPages} onClick={() => setPage(page + 1)}><ChevronRight size={14} /></Button>
-          </div>
-        </div>
-      )}
+      <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
     </div>
   );
 }

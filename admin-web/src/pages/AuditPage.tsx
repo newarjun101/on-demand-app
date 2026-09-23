@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n';
 import { adminApi, AuditEntry } from '@/api/endpoints';
 import { Avatar, Badge, Card, EmptyState, Skeleton } from '@/components/UI';
 import { timeAgo } from '@/utils/format';
+import { Pagination } from '@/components/Pagination';
 
 export function AuditPage() {
   const { t } = useI18n();
@@ -37,6 +38,7 @@ export function AuditPage() {
           ))}
         </div>
       )}
+      {data && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />}
     </div>
   );
 }

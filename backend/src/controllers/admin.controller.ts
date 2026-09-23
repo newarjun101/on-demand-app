@@ -31,6 +31,8 @@ const paymentListSchema = z.object({ page: z.coerce.number().int().min(1).defaul
 const reviewListSchema = z.object({ page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(20), minRating: z.coerce.number().int().min(1).max(5).optional() });
 const disputeListSchema = z.object({ page: z.coerce.number().int().min(1).default(1), pageSize: z.coerce.number().int().min(1).max(100).default(20), status: z.enum(['all', 'OPEN', 'IN_REVIEW', 'RESOLVED', 'CLOSED']).default('all') });
 const disputeResolveSchema = z.object({ resolution: z.string().min(1), refundAmount: z.number().int().min(0).optional() });
+const boostTierSchema = z.object({ id: z.string().min(1).max(80), label: z.string().min(1).max(80), days: z.number().int().min(1).max(365), amount: z.number().int().min(1000), boostFactor: z.number().min(1).max(100) });
+const pricingSchema = z.object({ commissionPercent: z.number().min(0).max(100).optional(), defaultCurrency: z.string().min(3).max(10).optional(), boostTiers: z.array(boostTierSchema).min(1).max(20).optional() });
 
 export const adminController = {
   me: handle(async (req, res) => {
@@ -49,6 +51,7 @@ export const adminController = {
   rejectWorker: handle(async (req, res) => { const { reason } = reasonSchema.parse(req.body); res.json(ok(await adminService.rejectWorker(req.user!.sub, req.params.id, reason))); }),
   suspendWorker: handle(async (req, res) => { const { reason } = reasonSchema.parse(req.body); res.json(ok(await adminService.suspendWorker(req.user!.sub, req.params.id, reason))); }),
   workerDocuments: handle(async (req, res) => { res.json(ok(await adminService.workerDocuments(req.params.id))); }),
+  workerKycDetails: handle(async (req, res) => { res.json(ok(await adminService.workerKycDetails(req.params.id))); }),
   listKyc: handle(async (req, res) => { res.json(ok(await adminService.listKyc(kycListSchema.parse(req.query)))); }),
   reviewKyc: handle(async (req, res) => { res.json(ok(await adminService.reviewKyc(req.user!.sub, req.params.id, kycReviewSchema.parse(req.body)))); }),
   listBookings: handle(async (req, res) => { res.json(ok(await adminService.listBookings(bookingListSchema.parse(req.query)))); }),
@@ -68,7 +71,7 @@ export const adminController = {
   listAudit: handle(async (req, res) => { res.json(ok(await adminService.listAudit(auditSchema.parse(req.query)))); }),
   broadcast: handle(async (req, res) => { res.json(ok(await adminService.broadcast(req.user!.sub, broadcastSchema.parse(req.body)))); }),
   getPricing: handle(async (_req, res) => { res.json(ok(await adminService.getPricing())); }),
-  updatePricing: handle(async (req, res) => { res.json(ok(await adminService.updatePricing(req.params.id, req.body))); }),
+  updatePricing: handle(async (req, res) => { res.json(ok(await adminService.updatePricing(req.params.id, pricingSchema.parse(req.body)))); }),
   listPayments: handle(async (req, res) => { res.json(ok(await adminService.listPayments(paymentListSchema.parse(req.query)))); }),
   listReviews: handle(async (req, res) => { res.json(ok(await adminService.listReviews(reviewListSchema.parse(req.query)))); }),
   deleteReview: handle(async (req, res) => { res.json(ok(await adminService.deleteReview(req.user!.sub, req.params.id))); }),

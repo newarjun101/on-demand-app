@@ -4,8 +4,8 @@ import { ok } from '../utils/api';
 import { PurchaseBoostInput } from '../validators/boost';
 
 export const boostController = {
-  getPricing(_req: Request, res: Response) {
-    res.json(ok(boostService.pricing()));
+  async getPricing(_req: Request, res: Response, next: NextFunction) {
+    try { res.json(ok(await boostService.pricing())); } catch (error) { next(error); }
   },
 
   async purchase(req: Request, res: Response, next: NextFunction) {

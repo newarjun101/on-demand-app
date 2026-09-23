@@ -80,6 +80,13 @@ all 5 locales.
 | `/settings`       | Change password                               |
 | `/login` `/register` | Auth flows                                  |
 
+## Dynamic boost tiers
+
+The Boost page loads its options from `GET /pricing`. Do not hard-code prices,
+durations, labels, or factors in the worker UI: administrators maintain them in
+the Admin portal. Send the selected tier's exact `days` and `amount` to
+`POST /me/boost`; the backend validates the choice against the active tiers.
+
 ## License
 
 MIT

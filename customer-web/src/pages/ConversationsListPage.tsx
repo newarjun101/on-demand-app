@@ -33,7 +33,7 @@ export function ConversationsListPage() {
             description="Chat will start automatically when you book a service."
           />
         ) : (
-          data!.map((c) => {
+          data!.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((c) => {
             const other = c.customerId === user?.id ? c.worker : c.customer;
             const unread = c.customerId === user?.id ? c.customerUnreadCount : c.workerUnreadCount;
             return (
@@ -56,7 +56,7 @@ export function ConversationsListPage() {
           })
         )}
       </div>
-      {data && data.length > PAGE_SIZE && (
+      {data && (
         <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onChange={setPage} />
       )}
     </div>

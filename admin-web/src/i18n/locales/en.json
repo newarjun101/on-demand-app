@@ -74,7 +74,9 @@
     "approve": "Approve", "reject": "Reject", "needsMoreInfo": "Needs more info",
     "rejectionReason": "Reason for rejection (visible to worker)",
     "adminNotes": "Internal notes", "viewDocument": "View document", "details": "View details",
-    "noPendingDocs": "No documents waiting for review"
+    "noPendingDocs": "No documents waiting for review",
+    "documents": "KYC documents", "noDocuments": "No documents uploaded",
+    "services": "Services offered", "availability": "Availability", "experience": "Years of experience"
   },
   "bookings": { "title": "Bookings", "subtitle": "All bookings on the platform", "search": "Search bookings", "service": "Service", "amount": "Amount", "fee": "Fee", "reason": "Reason", "refund": "Refund", "refundAmount": "Refund amount" },
   "reviews": { "title": "Reviews", "subtitle": "All reviews" },

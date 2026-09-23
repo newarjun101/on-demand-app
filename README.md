@@ -41,6 +41,10 @@ The three frontends are **completely independent** — they share nothing except
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 
+For an implementation-level guide covering ownership boundaries, lifecycle
+invariants, data relationships, realtime behavior, and safe change recipes,
+see [the Project Knowledge Base](docs/PROJECT_KNOWLEDGE.md).
+
 ---
 
 ## Quick start

@@ -184,7 +184,9 @@
     "adminNotes": "Internal notes",
     "viewDocument": "View document", "details": "विवरण देखें",
     "noPendingDocs": "No documents waiting for review",
-    "reviewHistory": "Review history"
+    "reviewHistory": "Review history",
+    "documents": "KYC दस्तावेज़", "noDocuments": "कोई दस्तावेज़ अपलोड नहीं किया गया",
+    "services": "दी जाने वाली सेवाएँ", "availability": "उपलब्धता", "experience": "अनुभव के वर्ष"
   },
   "bookings": {
     "title": "Bookings",

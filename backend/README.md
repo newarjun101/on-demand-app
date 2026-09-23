@@ -40,6 +40,15 @@ The OpenAPI spec covers **58 endpoints** across 16 resource groups (Auth, Users,
 Workers, Services, Requests, Quotes, Bookings, Chat, Favorites, Notifications,
 Reviews, Files, Boost, Analytics, Events, Disputes, Health).
 
+## Dynamic boost tiers
+
+Boost tiers are stored in `PlatformConfig.boostTiers` and managed through the
+Admin portal. `GET /api/pricing` returns the active tier collection; workers
+must submit a duration and amount matching one of those tiers when calling
+`POST /api/me/boost`. The fallback tiers are used only until an administrator
+saves the first configuration. Apply migration
+`20260924090000_add_dynamic_boost_tiers` before deploying this feature.
+
 ## Environment variables
 
 See `.env.example` for the full list. The most important:

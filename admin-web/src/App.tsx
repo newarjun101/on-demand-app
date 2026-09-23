@@ -7,6 +7,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { WorkersPage } from '@/pages/WorkersPage';
 import { KycPage } from '@/pages/KycPage';
+import { KycDetailPage } from '@/pages/KycDetailPage';
 import { BookingsPage } from '@/pages/BookingsPage';
 import { CategoriesPage } from '@/pages/CategoriesPage';
 import { BoostTiersPage } from '@/pages/BoostTiersPage';
@@ -59,6 +60,7 @@ export default function App() {
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/workers" element={<WorkersPage />} />
                   <Route path="/kyc" element={<KycPage />} />
+                  <Route path="/kyc/:workerProfileId" element={<KycDetailPage />} />
                   <Route path="/bookings" element={<BookingsPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/boost-tiers" element={<BoostTiersPage />} />

@@ -8,6 +8,7 @@ import { extractError } from '@/api/client';
 import { Avatar, Badge, Button, Card, EmptyState, Input, Skeleton, Spinner, Textarea } from '@/components/UI';
 import { useAdminAuth } from '@/contexts/AuthContext';
 import { formatMmk, timeAgo } from '@/utils/format';
+import { Pagination } from '@/components/Pagination';
 
 export function WorkersPage() {
   const { t } = useI18n();
@@ -65,6 +66,7 @@ export function WorkersPage() {
       ) : data.items.length === 0 ? (
         <EmptyState title={t('workers.noWorkersFound')} />
       ) : (
+        <>
         <Card>
           <table className="min-w-full text-sm">
             <thead className="text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
@@ -116,6 +118,8 @@ export function WorkersPage() {
             </tbody>
           </table>
         </Card>
+        <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
+        </>
       )}
 
       {rejectModal && (

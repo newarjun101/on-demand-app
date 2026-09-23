@@ -7,12 +7,15 @@ import { adminApi, AdminCategory } from '@/api/endpoints';
 import { extractError } from '@/api/client';
 import { Badge, Button, Card, EmptyState, Input, Skeleton, Spinner } from '@/components/UI';
 import { useAdminAuth } from '@/contexts/AuthContext';
+import { Pagination } from '@/components/Pagination';
 
 export function CategoriesPage() {
   const { t } = useI18n();
   const { hasPermission } = useAdminAuth();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Partial<AdminCategory> | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
   const { data, isLoading } = useQuery({ queryKey: ['admin-categories'], queryFn: () => adminApi.listCategories() });
   const saveMut = useMutation({
@@ -45,8 +48,9 @@ export function CategoriesPage() {
       ) : data.length === 0 ? (
         <EmptyState title={t('categories.noCategories')} icon={FolderTree} />
       ) : (
+        <>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {data.map((c: any) => (
+          {data.slice((page - 1) * pageSize, page * pageSize).map((c: any) => (
             <Card key={c.id} className="p-4">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{c.icon || '📁'}</span>
@@ -67,6 +71,8 @@ export function CategoriesPage() {
             </Card>
           ))}
         </div>
+        <Pagination page={page} pageSize={pageSize} total={data.length} onPageChange={setPage} />
+        </>
       )}
 
       {editing && (

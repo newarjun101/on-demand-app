@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { chatApi } from '@/api/endpoints';
 import { Avatar, Card, EmptyState, Skeleton } from '@/components/UI';
 import { timeAgo } from '@/utils/format';
 import { useAuth } from '@/contexts/AuthContext';
+import { Pagination } from '@/components/Pagination';
+
+const PAGE_SIZE = 30;
 
 export function ConversationsListPage() {
   const { user } = useAuth();
+  const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({ queryKey: ['conversations'], queryFn: chatApi.listConversations, refetchInterval: 8000 });
 
   return (
@@ -20,7 +25,7 @@ export function ConversationsListPage() {
         ) : (data?.length ?? 0) === 0 ? (
           <EmptyState title="No conversations yet" description="You'll be able to chat with customers once you accept a request." />
         ) : (
-          data!.map((c) => {
+          data!.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((c) => {
             const other = c.customerId === user?.id ? c.worker : c.customer;
             const unread = c.customerId === user?.id ? c.customerUnreadCount : c.workerUnreadCount;
             return (
@@ -41,6 +46,7 @@ export function ConversationsListPage() {
           })
         )}
       </div>
+      {data && <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onChange={setPage} />}
     </div>
   );
 }

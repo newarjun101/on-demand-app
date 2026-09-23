@@ -9,6 +9,7 @@ import { Avatar, Badge, Button, Card, EmptyState, Input, Select, Skeleton, Spinn
 import { formatMmk } from '@/utils/format';
 import { useAdminAuth } from '@/contexts/AuthContext';
 import { useState as useStateReact } from 'react';
+import { Pagination } from '@/components/Pagination';
 
 export function UsersPage() {
   const { t } = useI18n();
@@ -160,15 +161,7 @@ export function UsersPage() {
               </tbody>
             </table>
           </Card>
-          {data.total > data.pageSize && (
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <div>{t('users.showing', { from: (data.page - 1) * data.pageSize + 1, to: Math.min(data.page * data.pageSize, data.total), total: data.total })}</div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={data.page <= 1} onClick={() => setPage(data.page - 1)}>{t('common.back')}</Button>
-                <Button size="sm" variant="outline" disabled={data.page * data.pageSize >= data.total} onClick={() => setPage(data.page + 1)}>{t('common.next')}</Button>
-              </div>
-            </div>
-          )}
+          <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
         </>
       )}
 

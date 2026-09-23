@@ -184,7 +184,9 @@
     "adminNotes": "Internal notes",
     "viewDocument": "View document", "details": "ดูรายละเอียด",
     "noPendingDocs": "No documents waiting for review",
-    "reviewHistory": "Review history"
+    "reviewHistory": "Review history",
+    "documents": "เอกสาร KYC", "noDocuments": "ยังไม่ได้อัปโหลดเอกสาร",
+    "services": "บริการที่ให้", "availability": "เวลาที่พร้อมให้บริการ", "experience": "ปีประสบการณ์"
   },
   "bookings": {
     "title": "Bookings",
