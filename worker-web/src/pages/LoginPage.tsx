@@ -38,15 +38,6 @@ export function LoginPage() {
     }
   }
 
-  async function fillDemo() {
-    setLoading(true);
-    try {
-      await login('plumber@demo.com', 'Worker@123');
-      toast.success(t('auth.welcomeBack') + '!');
-      navigate('/dashboard');
-    } finally { setLoading(false); }
-  }
-
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
       <Card className="w-full max-w-md p-8">
@@ -79,9 +70,6 @@ export function LoginPage() {
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? <Spinner size={16} /> : <>{t('nav.login')} <ArrowRight size={16} className="ml-1" /></>}
           </Button>
-          <button type="button" onClick={fillDemo} className="text-xs text-brand-700 hover:underline" disabled={loading}>
-            {t('auth.useDemoWorker')}
-          </button>
         </form>
         <div className="mt-6 text-center text-sm text-gray-600">
           {t('auth.noAccount')} <Link to="/register" className="text-brand-700 font-medium hover:underline">{t('auth.createAccount')}</Link>

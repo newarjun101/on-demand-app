@@ -24,8 +24,7 @@
   "auth": {
     "loginTitle": "Admin portal", "loginSubtitle": "Sign in to manage the platform",
     "emailOrUsername": "Email or username", "password": "Password",
-    "forgot": "Forgot password?", "demoHint": "Demo super-admin: admin@demo.com / Admin@123",
-    "useDemoCredentials": "⚡ Use demo credentials", "demoCredentials": "Demo credentials",
+    "forgot": "Forgot password?",
     "identifier": "Identifier", "invalidCredentials": "Invalid email or password"
   },
   "errors": {

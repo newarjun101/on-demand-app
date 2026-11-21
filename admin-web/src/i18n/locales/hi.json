@@ -66,9 +66,6 @@
     "emailOrUsername": "Email or username",
     "password": "Password",
     "forgot": "Forgot password?",
-    "demoHint": "Demo super-admin: admin@demo.com / Admin@123",
-    "useDemoCredentials": "⚡ डेमो क्रेडेंशियल उपयोग करें",
-    "demoCredentials": "डेमो क्रेडेंशियल",
     "identifier": "पहचानकर्ता",
     "invalidCredentials": "अमान्य ईमेल या पासवर्ड"
   },

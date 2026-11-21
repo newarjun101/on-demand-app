@@ -43,17 +43,6 @@ export function LoginPage() {
     }
   }
 
-  async function fillDemo() {
-    setLoading(true);
-    try {
-      await login('customer@demo.com', 'Customer@123');
-      toast.success(t('auth.welcomeBack') + '!');
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <Card className="p-8">
@@ -91,9 +80,6 @@ export function LoginPage() {
           <Button type="submit" disabled={loading}>
             {loading ? <Spinner size={16} /> : <>{t('nav.login')} <ArrowRight size={16} className="ml-1" /></>}
           </Button>
-          <button type="button" onClick={fillDemo} className="text-xs text-brand-700 hover:underline self-start" disabled={loading}>
-            {t('auth.useDemoCustomer')}
-          </button>
         </form>
         <div className="mt-6 text-center text-sm text-gray-600">
           {t('auth.noAccount')}{' '}

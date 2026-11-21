@@ -81,9 +81,6 @@
     "emailOrUsername": "အီးမေးလ် (သို့) အသုံးပြုသူအမည်",
     "password": "စကားဝှက်",
     "forgot": "စကားဝှက် မေ့နေသလား?",
-    "demoHint": "ဒီမို စူပါအဒ်မင်: admin@demo.com / Admin@123",
-    "useDemoCredentials": "⚡ ဒီမို အကောင့်သုံးပါ",
-    "demoCredentials": "ဒီမို အကောင့်",
     "identifier": "အကောင့်အမည်",
     "invalidCredentials": "အီးမေးလ် (သို့) စကားဝှက် မှားနေသည်"
   },
