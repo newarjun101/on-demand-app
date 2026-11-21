@@ -55,29 +55,58 @@ jobs:
       - name: Configure SSH
         env:
           LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          LIGHTSAIL_USER: ${{ secrets.LIGHTSAIL_USER }}
           LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          # Optional repository variable; defaults to 22.
+          SSH_PORT: ${{ vars.LIGHTSAIL_SSH_PORT || '22' }}
         run: |
-          if [ -z "$LIGHTSAIL_HOST" ] || [ -z "$LIGHTSAIL_SSH_KEY" ]; then
-            echo "LIGHTSAIL_HOST and LIGHTSAIL_SSH_KEY secrets are required" >&2
-            exit 1
-          fi
+          for name in LIGHTSAIL_HOST LIGHTSAIL_USER LIGHTSAIL_SSH_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret $name is empty or missing (Settings > Secrets and variables > Actions)"
+              exit 1
+            fi
+          done
+
+          # Accept "1.2.3.4", "ubuntu@1.2.3.4", "ssh://host", "http://host/" and stray spaces.
+          host="$(printf '%s' "$LIGHTSAIL_HOST" | tr -d '[:space:]')"
+          host="${host#*://}"; host="${host#*@}"; host="${host%%/*}"
+          user="$(printf '%s' "$LIGHTSAIL_USER" | tr -d '[:space:]')"
+          echo "::add-mask::$host"
+          echo "DEPLOY_HOST=$host" >> "$GITHUB_ENV"
+          echo "DEPLOY_USER=$user" >> "$GITHUB_ENV"
+          echo "DEPLOY_PORT=$SSH_PORT" >> "$GITHUB_ENV"
+
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "$LIGHTSAIL_SSH_KEY" | tr -d '\r' > ~/.ssh/lightsail
           chmod 600 ~/.ssh/lightsail
-          ssh-keyscan -H "$LIGHTSAIL_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keygen -y -f ~/.ssh/lightsail >/dev/null 2>&1; then
+            echo "::error::LIGHTSAIL_SSH_KEY is not a valid private key. Paste the whole .pem file, including the BEGIN and END lines."
+            exit 1
+          fi
+
+          echo "Checking TCP port $SSH_PORT on the server..."
+          if ! timeout 15 bash -c "</dev/tcp/$host/$SSH_PORT" 2>/dev/null; then
+            echo "::error::Cannot reach the server on port $SSH_PORT. In Lightsail > Networking > IPv4 firewall, allow SSH (TCP $SSH_PORT) from any IP, and check that LIGHTSAIL_HOST is the instance public IP."
+            exit 1
+          fi
+
+          ssh-keyscan -T 15 -p "$SSH_PORT" -H "$host" >> ~/.ssh/known_hosts
+          if [ ! -s ~/.ssh/known_hosts ]; then
+            echo "::error::Port $SSH_PORT is open but no SSH host key was returned."
+            exit 1
+          fi
 
       - name: Deploy over SSH
         env:
-          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
-          LIGHTSAIL_USER: ${{ secrets.LIGHTSAIL_USER }}
           # Optional repository variable; defaults to ~/on-demand-app on the server.
           APP_DIR: ${{ vars.LIGHTSAIL_APP_DIR }}
         run: |
           # %q quotes the values safely for the remote shell.
           printf -v remote_cmd 'APP_DIR=%q DEPLOY_SHA=%q bash -s' "$APP_DIR" "$GITHUB_SHA"
-          ssh -i ~/.ssh/lightsail -o IdentitiesOnly=yes -o ServerAliveInterval=30 \
-            "$LIGHTSAIL_USER@$LIGHTSAIL_HOST" "$remote_cmd" \
+          ssh -i ~/.ssh/lightsail -p "$DEPLOY_PORT" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            "$DEPLOY_USER@$DEPLOY_HOST" "$remote_cmd" \
             < .github/scripts/deploy-lightsail.sh
 
       - name: Remove SSH key

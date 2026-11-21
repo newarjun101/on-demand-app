@@ -115,8 +115,9 @@ Repository settings (Settings > Secrets and variables > Actions):
 | `LIGHTSAIL_USER` | Secret | SSH user (for example `ubuntu` or `bitnami`) |
 | `LIGHTSAIL_SSH_KEY` | Secret | Full private key, including the `BEGIN`/`END` lines |
 | `LIGHTSAIL_APP_DIR` | Variable (optional) | Absolute checkout path on the server; default `~/on-demand-app` |
+| `LIGHTSAIL_SSH_PORT` | Variable (optional) | SSH port; default `22` |
 
-Server requirements: Docker with the Compose plugin, `git` and `curl` installed, the SSH user able to run `docker` without `sudo` (`sudo usermod -aG docker $USER`, then log in again), and port 22 open to GitHub Actions. Server-specific settings such as real JWT secrets, database password and public URLs belong in an untracked `docker-compose.override.yml` in the checkout; Compose merges it automatically.
+Server requirements: Docker with the Compose plugin, `git` and `curl` installed, the SSH user able to run `docker` without `sudo` (`sudo usermod -aG docker $USER`, then log in again), and SSH (TCP 22) allowed from any IP in Lightsail > Networking > IPv4 firewall, because GitHub Actions runners use changing IP addresses. Key-only SSH login keeps this safe. Server-specific settings such as real JWT secrets, database password and public URLs belong in an untracked `docker-compose.override.yml` in the checkout; Compose merges it automatically.
 
 ### Demo logins (after seeding)
 
