@@ -34,10 +34,16 @@ def get(url, timeout=30):
         return r.read()
 
 def search(q, aspect):
-    params = {"q": q, "license": "cc0,pdm,by", "page_size": 20, "mature": "false",
-              "aspect_ratio": aspect, "size": "large,medium", "category": "photograph"}
+    params = {"q": q, "license": "cc0,pdm,by", "page_size": 40, "mature": "false"}
     url = "https://api.openverse.org/v1/images/?" + urllib.parse.urlencode(params)
-    return json.loads(get(url))["results"]
+    for attempt in range(4):
+        try:
+            data = json.loads(get(url, timeout=60))
+            print(f"  {q!r}: {data.get('result_count')} results")
+            return data["results"]
+        except Exception as e:
+            print("  retry", attempt, e); time.sleep(5)
+    raise RuntimeError("search failed")
 
 os.makedirs("candidates", exist_ok=True)
 meta = {}
@@ -49,12 +55,15 @@ for slot, (q, aspect, size) in SLOTS.items():
     picks = []
     for r in results:
         if len(picks) >= N: break
-        try:
-            img = Image.open(io.BytesIO(get(r["url"]))).convert("RGB")
-        except Exception:
-            try: img = Image.open(io.BytesIO(get(r["thumbnail"]))).convert("RGB")
-            except Exception: continue
-        if img.width < size[0] * 0.6: continue
+        img = None
+        for key in ("url", "thumbnail"):
+            try:
+                img = Image.open(io.BytesIO(get(r[key]))).convert("RGB"); break
+            except Exception as e:
+                print("   skip", key, r["id"][:8], type(e).__name__, str(e)[:60])
+        if img is None: continue
+        if img.width < size[0] * 0.5 or img.height < size[1] * 0.5:
+            print("   too small", img.size); continue
         img = ImageOps.fit(img, size, Image.LANCZOS, centering=(0.5, 0.4))
         path = f"candidates/{slot}-{len(picks)}.jpg"
         img.save(path, "JPEG", quality=82, optimize=True, progressive=True)
