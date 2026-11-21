@@ -1,0 +1,85 @@
+name: Deploy to Lightsail
+
+# Every push to main builds all four apps, then redeploys the Docker Compose
+# stack on the Lightsail instance over SSH. Can also be started by hand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; a newer push waits for the current one.
+concurrency:
+  group: deploy-lightsail
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [backend, customer-web, worker-web, admin-web]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma client
+        if: matrix.app == 'backend'
+        run: npx prisma generate
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to Lightsail
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure SSH
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          LIGHTSAIL_SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+        run: |
+          if [ -z "$LIGHTSAIL_HOST" ] || [ -z "$LIGHTSAIL_SSH_KEY" ]; then
+            echo "LIGHTSAIL_HOST and LIGHTSAIL_SSH_KEY secrets are required" >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$LIGHTSAIL_SSH_KEY" | tr -d '\r' > ~/.ssh/lightsail
+          chmod 600 ~/.ssh/lightsail
+          ssh-keyscan -H "$LIGHTSAIL_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy over SSH
+        env:
+          LIGHTSAIL_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          LIGHTSAIL_USER: ${{ secrets.LIGHTSAIL_USER }}
+          # Optional repository variable; defaults to ~/on-demand-app on the server.
+          APP_DIR: ${{ vars.LIGHTSAIL_APP_DIR }}
+        run: |
+          # %q quotes the values safely for the remote shell.
+          printf -v remote_cmd 'APP_DIR=%q DEPLOY_SHA=%q bash -s' "$APP_DIR" "$GITHUB_SHA"
+          ssh -i ~/.ssh/lightsail -o IdentitiesOnly=yes -o ServerAliveInterval=30 \
+            "$LIGHTSAIL_USER@$LIGHTSAIL_HOST" "$remote_cmd" \
+            < .github/scripts/deploy-lightsail.sh
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/lightsail

@@ -97,6 +97,27 @@ docker compose down
 
 To remove local database and upload volumes as well, use `docker compose down -v`.
 
+### Automatic deploy to AWS Lightsail
+
+`.github/workflows/deploy-lightsail.yml` runs on every push to `main` (and by hand from the Actions tab). It builds all four apps, then connects to the Lightsail instance over SSH and runs `.github/scripts/deploy-lightsail.sh`, which:
+
+1. Clones the repo on first run, otherwise fast-forwards `main` (it stops if the server copy has local commits or edits).
+2. Runs `docker compose build`, then `prisma migrate deploy`, then `docker compose up -d`.
+3. Waits for `http://localhost:4000/health` and prints backend logs if it fails.
+
+It never seeds or resets the database.
+
+Repository settings (Settings > Secrets and variables > Actions):
+
+| Name | Type | Value |
+| --- | --- | --- |
+| `LIGHTSAIL_HOST` | Secret | Public IP or DNS name of the instance |
+| `LIGHTSAIL_USER` | Secret | SSH user (for example `ubuntu` or `bitnami`) |
+| `LIGHTSAIL_SSH_KEY` | Secret | Full private key, including the `BEGIN`/`END` lines |
+| `LIGHTSAIL_APP_DIR` | Variable (optional) | Absolute checkout path on the server; default `~/on-demand-app` |
+
+Server requirements: Docker with the Compose plugin, `git` and `curl` installed, the SSH user able to run `docker` without `sudo` (`sudo usermod -aG docker $USER`, then log in again), and port 22 open to GitHub Actions. Server-specific settings such as real JWT secrets, database password and public URLs belong in an untracked `docker-compose.override.yml` in the checkout; Compose merges it automatically.
+
 ### Demo logins (after seeding)
 
 | Role     | Email                 | Password    |
