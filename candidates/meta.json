@@ -1,0 +1,135 @@
+{
+  "avatar-aung-kyaw": [],
+  "avatar-ko-min": [],
+  "avatar-ma-thida": [],
+  "avatar-kyaw-zin": [],
+  "avatar-u-hla": [],
+  "avatar-ko-aye": [],
+  "avatar-zaw-lin": [],
+  "avatar-admin": [],
+  "work-2-toilet-install": [],
+  "work-3-house-wiring": [],
+  "work-4-deep-clean": [
+    {
+      "file": "candidates/work-4-deep-clean-0.jpg",
+      "id": "81811083-3181-4dc4-a50d-af243c219c86",
+      "title": "Mop Sweeping",
+      "creator": "Michal Jarmoluk",
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://stocksnap.io/photo/mop-sweeping-J4C1WJDMMU",
+      "provider": "stocksnap"
+    },
+    {
+      "file": "candidates/work-4-deep-clean-1.jpg",
+      "id": "62ac0637-3f9d-4fc3-befe-53849ff7bb4f",
+      "title": "Sweeping floor",
+      "creator": null,
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://www.rawpixel.com/image/5919765/sweeping-the-floor-free-public-domain-cc0-photo",
+      "provider": "rawpixel"
+    }
+  ],
+  "work-5-engine-repair": [
+    {
+      "file": "candidates/work-5-engine-repair-0.jpg",
+      "id": "9f1eb4fd-046f-494d-8ce9-05d517cadc39",
+      "title": "220507125149",
+      "creator": "jjes84",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/37779177@N03/52223724709",
+      "provider": "flickr"
+    },
+    {
+      "file": "candidates/work-5-engine-repair-1.jpg",
+      "id": "cd09ff12-19d7-45b7-ae75-461b5ec03212",
+      "title": "Father and child working together on a car engine",
+      "creator": "nenad53",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/202780880@N02/54576698356",
+      "provider": "flickr"
+    },
+    {
+      "file": "candidates/work-5-engine-repair-2.jpg",
+      "id": "bb179309-9585-47d9-8800-c67c268d8bef",
+      "title": "221103172853",
+      "creator": "jjes84",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/37779177@N03/52566607104",
+      "provider": "flickr"
+    },
+    {
+      "file": "candidates/work-5-engine-repair-3.jpg",
+      "id": "ff30070b-cfe8-467f-9ffc-38f62d0eff79",
+      "title": "Public Works Fleet Division, Greenville",
+      "creator": null,
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://www.rawpixel.com/image/9659059/image-person-fire-public-domain",
+      "provider": "rawpixel"
+    }
+  ],
+  "work-6-custom-shelf": [],
+  "work-7-delivery-run": [],
+  "category-home-repair": [
+    {
+      "file": "candidates/category-home-repair-0.jpg",
+      "id": "d6e87614-4660-4e19-aac9-e119970db2b0",
+      "title": "Antique Square Nails and Old Hammer",
+      "creator": "ShebleyCL",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/25636851@N03/51635953198",
+      "provider": "flickr"
+    },
+    {
+      "file": "candidates/category-home-repair-1.jpg",
+      "id": "cecc15a7-6698-409d-8dee-8ba544fe734b",
+      "title": "Handyman fixing boiler flue (Creative commons by https://heatable.co.uk/)",
+      "creator": "Heatable",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/194279519@N04/51634324282",
+      "provider": "flickr"
+    }
+  ],
+  "category-home-services": [
+    {
+      "file": "candidates/category-home-services-0.jpg",
+      "id": "72c1fbf4-60f8-46af-8a87-83cf16d7c995",
+      "title": "wooden bucket, brush, other cleaning",
+      "creator": null,
+      "license": "cc0",
+      "license_version": "1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": "https://www.rawpixel.com/image/3293028/free-photo-image-barrel-brush-bucket",
+      "provider": "rawpixel"
+    }
+  ],
+  "category-delivery-helpers": [
+    {
+      "file": "candidates/category-delivery-helpers-0.jpg",
+      "id": "a424ac94-d301-44b3-ae16-700e9a5a93a7",
+      "title": "A Woman Signing for a Parcel at the Door",
+      "creator": "The Bag N Box Man LTD",
+      "license": "by",
+      "license_version": "2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "source": "https://www.flickr.com/photos/195311218@N08/52160346115",
+      "provider": "flickr"
+    }
+  ],
+  "hero-home": []
+}
