@@ -53,8 +53,8 @@ export function RequestDetailPage() {
 
   async function startChat(workerId: string) {
     try {
-      const msg = await chatApi.sendMessage({ recipientId: workerId, requestId: id, text: 'Hi about my request' });
-      navigate(`/messages/${msg.conversationId}`);
+      const conv = await chatApi.openConversation({ recipientId: workerId, requestId: id });
+      navigate(`/messages/${conv.id}`);
     } catch (e: any) {
       toast.error('Could not start chat');
     }

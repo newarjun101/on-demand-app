@@ -6,6 +6,9 @@ export const chatController = {
   async listConversations(req: Request, res: Response, next: NextFunction) {
     try { res.json(ok(await chatService.listForUser(req.user!.sub))); } catch (error) { next(error); }
   },
+  async openConversation(req: Request, res: Response, next: NextFunction) {
+    try { res.json(ok(await chatService.open({ userId: req.user!.sub, ...req.body }))); } catch (error) { next(error); }
+  },
   async getConversation(req: Request, res: Response, next: NextFunction) {
     try { res.json(ok(await chatService.getConversation(req.params.id, req.user!.sub))); } catch (error) { next(error); }
   },

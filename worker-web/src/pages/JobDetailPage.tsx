@@ -84,8 +84,8 @@ export function JobDetailPage() {
           </div>
           <Button variant="outline" size="sm" onClick={async () => {
             try {
-              const m = await chatApi.sendMessage({ recipientId: booking.customerId, text: 'Hi' });
-              navigate(`/messages/${m.conversationId}`);
+              const conv = await chatApi.openConversation({ recipientId: booking.customerId });
+              navigate(`/messages/${conv.id}`);
             } catch {}
           }}>
             <MessageCircle size={14} className="mr-1" /> Chat
