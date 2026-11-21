@@ -56,8 +56,9 @@ export function WorkerProfilePage() {
     if (!user) { navigate('/login'); return; }
     setChatLoading(true);
     try {
-      const conv = await chatApi.sendMessage({ recipientId: worker?.user.id, text: 'Hi!' });
-      navigate(`/messages/${conv.conversationId}`);
+      if (!worker) return;
+      const conv = await chatApi.openConversation({ recipientId: worker.user.id });
+      navigate(`/messages/${conv.id}`);
     } catch (e: any) {
       toast.error(e?.response?.data?.error?.message ?? 'Could not start chat');
     } finally {

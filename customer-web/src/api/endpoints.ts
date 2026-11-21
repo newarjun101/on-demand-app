@@ -115,6 +115,8 @@ export const chatApi = {
   listMessages: (id: string, page = 1, pageSize = 50) =>
     apiClient.get(`/conversations/${id}/messages`, { params: { page, pageSize } }).then((r) => extractData<PaginatedResponse<Message>>(r)),
   markRead: (id: string) => apiClient.post(`/conversations/${id}/read`).then((r) => extractData<unknown>(r)),
+  openConversation: (input: { recipientId: string; requestId?: string }) =>
+    apiClient.post('/conversations', input).then((r) => extractData<Conversation>(r)),
   sendMessage: (input: { conversationId?: string; recipientId?: string; requestId?: string; text?: string; imageUrl?: string }) =>
     apiClient.post('/messages', input).then((r) => extractData<Message>(r)),
 };

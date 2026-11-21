@@ -11,6 +11,11 @@ export const sendMessageSchema = z.object({
   { message: 'Message must include text or image' },
 );
 
+export const openConversationSchema = z.object({
+  recipientId: z.string().uuid(),
+  requestId: z.string().uuid().optional(),
+});
+
 export const markReadSchema = z.object({
   conversationId: z.string().uuid(),
 });

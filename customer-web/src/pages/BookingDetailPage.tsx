@@ -59,8 +59,8 @@ export function BookingDetailPage() {
           <div className="flex flex-col gap-1">
             <Button variant="outline" size="sm" onClick={async () => {
               try {
-                const m = await chatApi.sendMessage({ recipientId: booking.workerId, text: 'Hi' });
-                navigate(`/messages/${m.conversationId}`);
+                const conv = await chatApi.openConversation({ recipientId: booking.workerId });
+                navigate(`/messages/${conv.id}`);
               } catch {}
             }}>
               <MessageCircle size={14} className="mr-1" /> Chat

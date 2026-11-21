@@ -133,6 +133,7 @@ const ROUTES: RouteInfo[] = [
 
   // Chat
   { method: 'get',  path: '/api/conversations',          fullPath: '/api/v1/{locale}/conversations',          summary: 'List conversations',    description: 'List the user\'s conversations', auth: 'customer-or-worker' },
+  { method: 'post', path: '/api/conversations',          fullPath: '/api/v1/{locale}/conversations',          summary: 'Open a conversation',   description: 'Find or create the conversation with recipientId (optionally scoped to requestId) without sending a message', auth: 'customer-or-worker', bodySchema: 'OpenConversationRequest' },
   { method: 'get',  path: '/api/conversations/:id',      fullPath: '/api/v1/{locale}/conversations/{id}',      summary: 'Get a conversation',     description: 'Returns conversation metadata', auth: 'customer-or-worker' },
   { method: 'get',  path: '/api/conversations/:id/messages', fullPath: '/api/v1/{locale}/conversations/{id}/messages', summary: 'List messages',     description: 'Paginated list of messages in a conversation', auth: 'customer-or-worker' },
   { method: 'post', path: '/api/conversations/:id/read', fullPath: '/api/v1/{locale}/conversations/{id}/read', summary: 'Mark as read',          description: 'Mark all messages in the conversation as read by the current user', auth: 'customer-or-worker' },
@@ -452,6 +453,14 @@ const SCHEMAS: Record<string, any> = {
       rating:  { type: 'integer', minimum: 1, maximum: 5 },
       comment: { type: 'string' },
       photos:  { type: 'array', items: { type: 'string' } },
+    },
+  },
+  OpenConversationRequest: {
+    type: 'object',
+    required: ['recipientId'],
+    properties: {
+      recipientId: { type: 'string', format: 'uuid' },
+      requestId:   { type: 'string', format: 'uuid' },
     },
   },
   SendMessageRequest: {

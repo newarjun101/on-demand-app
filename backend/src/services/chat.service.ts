@@ -24,6 +24,21 @@ export const chatService = {
     });
   },
 
+  // Finds or creates the customer/worker conversation between the caller and
+  // the recipient without sending a message.
+  async open(opts: { userId: string; recipientId: string; requestId?: string }) {
+    const recipient = await prisma.user.findUnique({ where: { id: opts.recipientId } });
+    if (!recipient) throw errors.notFound('Recipient not found');
+    const sender = await prisma.user.findUnique({ where: { id: opts.userId } });
+    if (!sender) throw errors.unauthorized();
+    if (sender.role === recipient.role) {
+      throw errors.badRequest('Cannot chat with same role users');
+    }
+    const customerId = sender.role === 'CUSTOMER' ? sender.id : recipient.id;
+    const workerId = sender.role === 'WORKER' ? sender.id : recipient.id;
+    return this.ensureConversation({ customerId, workerId, requestId: opts.requestId });
+  },
+
   async listForUser(userId: string) {
     return prisma.conversation.findMany({
       where: { OR: [{ customerId: userId }, { workerId: userId }] },
@@ -80,17 +95,7 @@ export const chatService = {
 
     if (!conversationId) {
       if (!opts.recipientId) throw errors.badRequest('Recipient is required');
-      // Ensure conversation is for a customer+worker pair, with both being legitimate
-      const recipient = await prisma.user.findUnique({ where: { id: opts.recipientId } });
-      if (!recipient) throw errors.notFound('Recipient not found');
-      const sender = await prisma.user.findUnique({ where: { id: opts.senderId } });
-      if (!sender) throw errors.unauthorized();
-      if (sender.role === recipient.role) {
-        throw errors.badRequest('Cannot chat with same role users');
-      }
-      const customerId = sender.role === 'CUSTOMER' ? sender.id : recipient.id;
-      const workerId = sender.role === 'WORKER' ? sender.id : recipient.id;
-      const conv = await this.ensureConversation({ customerId, workerId, requestId: opts.requestId });
+      const conv = await this.open({ userId: opts.senderId, recipientId: opts.recipientId, requestId: opts.requestId });
       conversationId = conv.id;
     }
 
