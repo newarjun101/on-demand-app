@@ -41,7 +41,7 @@ export function ConversationsListPage() {
                 <Card className="p-4 flex items-center gap-3 hover:border-brand-300 transition">
                   <Avatar src={other.avatarUrl} name={other.fullName} size={48} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="font-semibold truncate">{other.fullName}</div>
                       <div className="text-xs text-gray-500">{timeAgo(c.lastMessageAt)}</div>
                     </div>

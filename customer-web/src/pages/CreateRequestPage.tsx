@@ -215,7 +215,7 @@ export function CreateRequestPage() {
           <Input label={t('auth.city')} {...register('city')} error={errors.city?.message} />
           <Input label={t('auth.address')} {...register('addressLine')} error={errors.addressLine?.message} />
           <Input label={t('auth.landmark')} {...register('landmark')} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label={t('profile.coordinates')} type="number" step="any" {...register('latitude', { valueAsNumber: true })} error={errors.latitude?.message} />
             <Input label={t('common.max')} type="number" step="any" {...register('longitude', { valueAsNumber: true })} error={errors.longitude?.message} />
           </div>
@@ -244,7 +244,7 @@ export function CreateRequestPage() {
 
         <Card className="p-6 space-y-4">
           <h2 className="font-semibold text-gray-900">{t('request.budget')}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label={t('request.minMmk')} type="number" min="0" step="any" {...register('minBudget', { valueAsNumber: true })} error={errors.minBudget?.message} />
             <Input label={t('request.maxMmk')} type="number" min="0" step="any" {...register('maxBudget', { valueAsNumber: true })} error={errors.maxBudget?.message} />
           </div>

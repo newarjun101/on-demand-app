@@ -192,7 +192,7 @@ export function DashboardPage() {
             <Card className="p-4">
               <h2 className="font-semibold mb-3">{t('dashboard.stats')}</h2>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-gray-500">{t('dashboard.rating')}</span>
                   <span className="flex items-center gap-1"><StarRating value={profile.ratingAverage} /> <span className="font-semibold">{profile.ratingAverage.toFixed(1)}</span></span>
                 </div>
@@ -214,7 +214,7 @@ export function DashboardPage() {
 function StatCard({ title, value, icon: Icon, loading }: { title: string; value: any; icon: any; loading?: boolean }) {
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs text-gray-500 uppercase tracking-wide">{title}</div>
           <div className="text-2xl font-bold text-gray-900 mt-1">{loading ? <Spinner size={20} /> : value}</div>

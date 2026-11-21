@@ -19,7 +19,7 @@ export function PaymentsPage() {
         <p className="text-sm text-gray-500 mt-1">{t('payments.subtitle')}</p>
       </div>
       {isLoading ? <Skeleton className="h-32" /> : payments.length === 0 ? <EmptyState title="No payments" /> : (
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
               <tr>

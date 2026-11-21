@@ -285,7 +285,7 @@ export function ProfilePage() {
               <Input label="Service radius (km)" type="number" {...register('serviceRadiusKm')} error={errors.serviceRadiusKm?.message} />
             </div>
             <Input label="Address" placeholder="No. 12, Ahlone Road" {...register('addressLine')} error={errors.addressLine?.message} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input label="Latitude" type="number" step="any" placeholder="16.8409" value={lat ?? ''} onChange={(e) => setValue('latitude', e.target.value as any)} />
               <Input label="Longitude" type="number" step="any" placeholder="96.1735" value={lng ?? ''} onChange={(e) => setValue('longitude', e.target.value as any)} />
             </div>

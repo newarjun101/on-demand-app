@@ -173,7 +173,7 @@ export function UsersPage() {
 
       {banModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{t('users.banUser')}</h3>
             <p className="text-sm text-gray-500 mt-1">{banModal.user.fullName} · {banModal.user.email}</p>
             <label className="block mt-4 text-sm font-medium text-gray-700">{t('users.banReason')}</label>

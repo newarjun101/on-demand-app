@@ -157,7 +157,7 @@ export function DisputesPage() {
       <Pagination page={page} pageSize={15} total={total} onPageChange={setPage} />
       {resolveModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md p-6 space-y-4">
+          <Card className="w-full max-w-md p-4 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">Resolve Dispute</h3>
             <textarea className="w-full border rounded-lg p-3 text-sm" rows={3} placeholder="Resolution notes..." value={resolveModal.resolution} onChange={(e) => setResolveModal({ ...resolveModal, resolution: e.target.value })} />
             <input type="number" className="w-full border rounded-lg p-3 text-sm" placeholder="Refund amount (MMK, 0 = no refund)" value={resolveModal.refundAmount || ''} onChange={(e) => setResolveModal({ ...resolveModal, refundAmount: Number(e.target.value) })} />

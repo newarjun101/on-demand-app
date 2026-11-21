@@ -23,3 +23,10 @@ div[role="status"]:hover button[aria-label="Close"],
 div[role="status"]:hover button[aria-label="Dismiss"] {
   opacity: 1 !important;
 }
+
+/* Phones: 16px form text stops iOS Safari from zooming on focus; keep long words from widening the page */
+html { -webkit-text-size-adjust: 100%; }
+img, video { max-width: 100%; }
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px; }
+}

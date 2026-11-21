@@ -107,7 +107,7 @@ export function BookingsPage() {
 
       {refundModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{t('bookings.refund')}</h3>
             <p className="text-sm text-gray-500 mt-1">{refundModal.booking.serviceName} · {refundModal.booking.customerName}</p>
             <div className="mt-3">

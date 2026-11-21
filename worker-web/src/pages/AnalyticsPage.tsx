@@ -187,7 +187,7 @@ export function AnalyticsPage() {
           {/* Boost summary */}
           <div className="mt-4 grid sm:grid-cols-2 gap-4">
             <Card className="p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="text-xs text-gray-500 uppercase tracking-wide">Boost traffic</div>
                   <div className="mt-1 text-3xl font-bold text-amber-600">{data.kpis.boostSharePct}%</div>
@@ -197,7 +197,7 @@ export function AnalyticsPage() {
               </div>
             </Card>
             <Card className="p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="text-xs text-gray-500 uppercase tracking-wide">Organic traffic</div>
                   <div className="mt-1 text-3xl font-bold text-emerald-600">{data.kpis.organicSharePct}%</div>
@@ -218,7 +218,7 @@ function KpiCard({ title, value, delta, icon: Icon }: { title: string; value: nu
   const negative = delta < 0;
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs text-gray-500 uppercase tracking-wide">{title}</div>
           <div className="text-2xl font-bold text-gray-900 mt-1">{value.toLocaleString()}</div>

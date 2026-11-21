@@ -101,7 +101,7 @@ export function BoostPage() {
                   selected ? 'border-amber-500 bg-amber-50 shadow-md' : 'border-gray-200 bg-white hover:border-amber-300',
                 )}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="font-semibold text-gray-900">{tier.label}</div>
                   {i === 2 && <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">POPULAR</span>}
                 </div>

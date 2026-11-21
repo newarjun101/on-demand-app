@@ -31,7 +31,7 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('categories.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('categories.subtitle')}</p>
@@ -77,7 +77,7 @@ export function CategoriesPage() {
 
       {editing && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{editing.id ? t('common.edit') : t('categories.addCategory')}</h3>
             <div className="mt-3 space-y-3">
               <Input label={t('categories.icon')} placeholder="🏠" value={editing.icon ?? ''} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} />
