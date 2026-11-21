@@ -34,7 +34,7 @@ export function RolesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('roles.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('roles.subtitle')}</p>
@@ -71,7 +71,7 @@ export function RolesPage() {
 
       {editing && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+          <Card className="w-full max-w-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{editing.id ? t('roles.editRole') : t('roles.newRole')}</h3>
             <div className="mt-3 space-y-3">
               <Input label={t('roles.roleName')} value={editing.name ?? ''} onChange={(e) => setEditing({ ...editing, name: e.target.value, slug: (editing.slug || e.target.value).toLowerCase().replace(/[^a-z0-9_]+/g, '_') })} disabled={!!editing.isBuiltIn} />

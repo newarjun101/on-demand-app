@@ -103,7 +103,7 @@ export function HomePage() {
 
       {/* Categories */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('home.popularCategories')}</h2>
         </div>
         {catsLoading ? (
@@ -129,7 +129,7 @@ export function HomePage() {
       {/* Recommended for you — only for logged-in customers */}
       {user && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Sparkles size={20} className="text-amber-500" /> {t('home.recommended')}
@@ -165,7 +165,7 @@ export function HomePage() {
 
       {/* Popular workers */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('home.topRatedWorkers')}</h2>
             <p className="text-sm text-gray-500 mt-1">{t('home.topRatedSubtitle')}</p>

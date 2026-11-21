@@ -107,7 +107,7 @@ export function UserDetailPage() {
 
         {user.workerProfile && (
           <Card>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="text-lg font-semibold">Worker Profile</h2>
               <Link to={`/workers/${user.workerProfile.id}`} className="text-sm text-indigo-600 hover:underline">
                 View Worker Detail →

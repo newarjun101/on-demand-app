@@ -3,3 +3,10 @@ html, body, #root { height: 100%; }
 body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #0f172a; -webkit-font-smoothing: antialiased; }
 div[role="status"] button[aria-label="Close"], div[role="status"] button[aria-label="Dismiss"] { opacity: 0.6 !important; transition: opacity 0.15s ease; }
 div[role="status"]:hover button[aria-label="Close"], div[role="status"]:hover button[aria-label="Dismiss"] { opacity: 1 !important; }
+
+/* Phones: 16px form text stops iOS Safari from zooming on focus; keep long words from widening the page */
+html { -webkit-text-size-adjust: 100%; }
+img, video { max-width: 100%; }
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea { font-size: 16px; }
+}

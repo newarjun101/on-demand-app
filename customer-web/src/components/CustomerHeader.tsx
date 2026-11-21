@@ -29,13 +29,13 @@ export function CustomerHeader() {
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h 3v 9h 6v-6h 2v6h 6v-9h3z" /></svg>
             </div>
             <div>
-              <div className="font-bold text-gray-900 leading-tight">{t('common.appName')}</div>
-              <div className="text-[10px] text-gray-500 leading-tight">{t('home.heroTitle')}</div>
+              <div className="font-bold text-gray-900 leading-tight truncate hidden min-[420px]:block">{t('common.appName')}</div>
+              <div className="text-[10px] text-gray-500 leading-tight hidden md:block">{t('home.heroTitle')}</div>
             </div>
           </Link>
 
@@ -57,7 +57,7 @@ export function CustomerHeader() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LocaleSwitcher />
             {user ? (
               <div className="relative">
@@ -90,7 +90,7 @@ export function CustomerHeader() {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around py-2 px-1">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
         {navItems.map((it) => (
           <NavLink
             key={it.to}
@@ -98,18 +98,18 @@ export function CustomerHeader() {
             end={it.to === '/'}
             className={({ isActive }) =>
               clsx(
-                'flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs',
+                'flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1 rounded-lg text-xs',
                 isActive ? 'text-brand-700' : 'text-gray-500',
               )
             }
           >
             <it.icon size={20} />
-            {it.label}
+            <span className="max-w-full truncate">{it.label}</span>
           </NavLink>
         ))}
-        <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
+        <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
           <User size={20} />
-          {t('nav.profile')}
+          <span className="max-w-full truncate">{t('nav.profile')}</span>
         </NavLink>
       </nav>
     </header>

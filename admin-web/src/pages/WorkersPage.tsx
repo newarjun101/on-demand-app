@@ -130,7 +130,7 @@ export function WorkersPage() {
 
       {rejectModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{t('workers.reject')}</h3>
             <p className="text-sm text-gray-500 mt-1">{rejectModal.worker.fullName}</p>
             <Textarea label={t('users.banReason')} className="mt-3" rows={3} value={rejectModal.reason} onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })} />
@@ -146,7 +146,7 @@ export function WorkersPage() {
 
       {suspendModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6">
+          <Card className="w-full max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold">{t('workers.suspend')}</h3>
             <p className="text-sm text-gray-500 mt-1">{suspendModal.worker.fullName}</p>
             <Textarea label={t('users.banReason')} className="mt-3" rows={3} value={suspendModal.reason} onChange={(e) => setSuspendModal({ ...suspendModal, reason: e.target.value })} />

@@ -20,7 +20,7 @@ export function CalendarPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
         <div className="flex items-center gap-2">
           <button onClick={() => setWeekStart(addDays(weekStart, -7))} className="p-2 rounded-lg hover:bg-gray-100"><ChevronLeft size={18} /></button>
@@ -29,7 +29,8 @@ export function CalendarPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-2">
+      <div className="mt-6 overflow-x-auto pb-2">
+      <div className="grid grid-cols-7 gap-2 min-w-[640px]">
         {days.map((d) => (
           <div key={d.toISOString()} className="text-center text-xs font-medium text-gray-500">{DAYS[d.getDay()]} {d.getDate()}</div>
         ))}
@@ -60,8 +61,9 @@ export function CalendarPage() {
           );
         })}
       </div>
+      </div>
 
-      <Card className="p-6 mt-6">
+      <Card className="p-4 sm:p-6 mt-6">
         <h2 className="font-semibold mb-3">Working hours</h2>
         <p className="text-sm text-gray-500">Manage your availability in the <a href="/availability" className="text-brand-700 hover:underline">availability page</a>.</p>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">

@@ -39,7 +39,7 @@ export function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
         {data && data.unread > 0 && (
           <button onClick={() => markAll.mutate()} className="text-sm text-brand-700 inline-flex items-center gap-1 hover:underline">

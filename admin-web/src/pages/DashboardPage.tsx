@@ -125,7 +125,7 @@ export function DashboardPage({ initialData }: { initialData?: AnyData } = {}) {
 
       {/* Recent activity */}
       <Card className="p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h3 className="font-semibold text-gray-900">{t('dashboard.recentActivity')}</h3>
           <Link to="/audit" className="text-sm text-indigo-600 hover:underline">{t('common.seeAll')} →</Link>
         </div>

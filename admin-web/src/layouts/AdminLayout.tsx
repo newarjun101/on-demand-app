@@ -13,6 +13,8 @@ export function AdminLayout() {
   const { user, hasPermission, logout } = useAdminAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const collapsed = !sidebarOpen;
 
   if (!user) return <Outlet />;
 
@@ -49,12 +51,14 @@ export function AdminLayout() {
     navigate('/login');
   }
 
+  // Below lg the sidebar is an off-canvas drawer; from lg up it is static and collapsible.
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <aside className={clsx('bg-gray-900 text-gray-200 flex-shrink-0 flex flex-col transition-all duration-200', sidebarOpen ? 'w-64' : 'w-16')}>
+      {mobileOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileOpen(false)} aria-hidden="true" />}
+      <aside className={clsx('bg-gray-900 text-gray-200 flex-shrink-0 flex flex-col transition-all duration-200 fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] lg:static lg:z-auto lg:max-w-none lg:translate-x-0', mobileOpen ? 'translate-x-0' : '-translate-x-full', collapsed && 'lg:w-16')}>
         <div className="h-16 flex items-center px-4 border-b border-gray-800">
           <ShieldCheck size={20} className="text-indigo-400 flex-shrink-0" />
-          {sidebarOpen && <span className="ml-2 font-bold text-white truncate">{t('common.appName')}</span>}
+          <span className={clsx('ml-2 font-bold text-white truncate', collapsed && 'lg:hidden')}>{t('common.appName')}</span>
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
           {sections.map((section) => {
@@ -62,13 +66,13 @@ export function AdminLayout() {
             if (!visible.length) return null;
             return (
               <div key={section.title} className="mb-3">
-                {sidebarOpen && <div className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{section.title}</div>}
+                <div className={clsx('px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500', collapsed && 'lg:hidden')}>{section.title}</div>
                 {visible.map((it) => (
-                  <NavLink key={it.to} to={it.to} className={({ isActive }) =>
+                  <NavLink key={it.to} to={it.to} onClick={() => setMobileOpen(false)} className={({ isActive }) =>
                     clsx('flex items-center gap-3 px-4 py-2 text-sm transition border-l-4', isActive ? 'bg-gray-800 text-white border-indigo-400' : 'text-gray-300 hover:bg-gray-800 hover:text-white border-transparent')
                   }>
                     <it.icon size={16} className="flex-shrink-0" />
-                    {sidebarOpen && <span className="truncate">{it.label}</span>}
+                    <span className={clsx('truncate', collapsed && 'lg:hidden')}>{it.label}</span>
                   </NavLink>
                 ))}
               </div>
@@ -77,23 +81,25 @@ export function AdminLayout() {
         </nav>
         <div className="border-t border-gray-800 p-3 flex items-center gap-3">
           <Avatar src={user.avatarUrl} name={user.fullName} size={28} />
-          {sidebarOpen && (
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{user.fullName}</div>
-              <div className="flex gap-1 flex-wrap mt-0.5">{(user.roles || []).slice(0, 2).map((r) => <Badge key={r.id} color="indigo">{r.name}</Badge>)}</div>
-            </div>
-          )}
+          <div className={clsx('flex-1 min-w-0', collapsed && 'lg:hidden')}>
+            <div className="text-sm font-medium text-white truncate">{user.fullName}</div>
+            <div className="flex gap-1 flex-wrap mt-0.5">{(user.roles || []).slice(0, 2).map((r) => <Badge key={r.id} color="indigo">{r.name}</Badge>)}</div>
+          </div>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 bg-white border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 rounded hover:bg-gray-100 text-gray-600" aria-label="Toggle sidebar">
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded hover:bg-gray-100 text-gray-600" aria-label="Toggle menu">
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden lg:inline-flex p-1.5 rounded hover:bg-gray-100 text-gray-600" aria-label="Toggle sidebar">
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
+          <div className="flex-1" />
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
-            <button onClick={handleLogout} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">
-              <LogOut size={14} /> {t('nav.logout')}
+            <button onClick={handleLogout} aria-label={t('nav.logout')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">
+              <LogOut size={14} /> <span className="hidden sm:inline">{t('nav.logout')}</span>
             </button>
           </div>
         </header>

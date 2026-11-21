@@ -61,13 +61,13 @@ export function WorkerHeader() {
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center">
               <Wrench size={18} />
             </div>
             <div>
-              <div className="font-bold text-gray-900 leading-tight">Worker Pro</div>
-              <div className="text-[10px] text-gray-500 leading-tight">{t('nav.dashboard')}</div>
+              <div className="font-bold text-gray-900 leading-tight truncate hidden min-[420px]:block">Worker Pro</div>
+              <div className="text-[10px] text-gray-500 leading-tight hidden md:block">{t('nav.dashboard')}</div>
             </div>
           </Link>
 
@@ -86,20 +86,21 @@ export function WorkerHeader() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LocaleSwitcher />
             <button
               onClick={() => statusMut.mutate(!isOnline)}
               className={clsx(
-                'hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition',
+                'inline-flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 rounded-full text-sm font-medium transition',
                 isOnline && isAccepting ? 'bg-brand-100 text-brand-800 hover:bg-brand-200'
                   : isOnline ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
               )}
               title={isOnline ? 'Click to go offline' : 'Click to go online'}
+              aria-label={isOnline ? 'Go offline' : 'Go online'}
             >
               {isOnline ? <Bell size={14} /> : <BellOff size={14} />}
-              {isOnline && isAccepting ? t('status.acceptingJobs') : isOnline ? t('status.online') + ' (' + t('home.searchPlaceholder') + ')' : t('status.offline')}
+              <span className="hidden sm:inline">{isOnline && isAccepting ? t('status.acceptingJobs') : isOnline ? t('status.online') + ' (' + t('home.searchPlaceholder') + ')' : t('status.offline')}</span>
             </button>
 
             <Link to="/notifications" className="text-gray-500 hover:text-gray-900 relative">
@@ -132,16 +133,16 @@ export function WorkerHeader() {
         </div>
       </div>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around py-2 px-1">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
         {navItems.map((it) => (
-          <NavLink key={it.to} to={it.to} className={({ isActive }) => clsx('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
+          <NavLink key={it.to} to={it.to} className={({ isActive }) => clsx('flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
             <it.icon size={20} />
-            {it.label}
+            <span className="max-w-full truncate">{it.label}</span>
           </NavLink>
         ))}
-        <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
+        <NavLink to="/profile" className={({ isActive }) => clsx('flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1 rounded-lg text-xs', isActive ? 'text-brand-700' : 'text-gray-500')}>
           <UserIcon size={20} />
-          {t('nav.profile')}
+          <span className="max-w-full truncate">{t('nav.profile')}</span>
         </NavLink>
       </nav>
     </header>

@@ -19,7 +19,7 @@ export function PaymentModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6">
+      <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-bold">Confirm payment</h3>
         <p className="text-sm text-gray-500 mt-1">Total: <span className="font-semibold text-gray-900">{formatMmk(booking.total)}</span></p>
         <div className="mt-4 space-y-2">

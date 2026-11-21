@@ -198,7 +198,7 @@ export function RequestDetailPage() {
       {/* Booking status */}
       {booking && (
         <Card className="p-6 mt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="text-sm text-gray-500">Booking #{booking.id.slice(0, 8)}</div>
               <h2 className="text-lg font-semibold text-gray-900 mt-1">{booking.worker?.fullName}</h2>
