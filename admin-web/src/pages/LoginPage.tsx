@@ -16,8 +16,8 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<{ identifier: string; password: string }>({
-    defaultValues: { identifier: 'admin@demo.com', password: 'Admin@123' },
+  const { register, handleSubmit, formState: { errors } } = useForm<{ identifier: string; password: string }>({
+    defaultValues: { identifier: '', password: '' },
   });
 
   // If user is already authenticated (e.g. refreshed and came back to /login),
@@ -49,15 +49,6 @@ export function LoginPage() {
     }
   }
 
-  function useDemo() {
-    setValue('identifier', 'admin@demo.com');
-    setValue('password', 'Admin@123');
-  }
-  function clear() {
-    setValue('identifier', '');
-    setValue('password', '');
-    setError(null);
-  }
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100">
@@ -110,17 +101,6 @@ export function LoginPage() {
                 {loading ? <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" /><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg> : <><LogIn size={16} />{t('nav.login')} <ArrowRight size={16} /></>}
               </button>
             </form>
-            <div className="mt-5 pt-5 border-t border-gray-200">
-              <div className="flex items-center justify-between text-sm">
-                <button type="button" onClick={useDemo} className="text-indigo-600 hover:text-indigo-700 font-medium">⚡ {t('auth.useDemoCredentials')}</button>
-                <button type="button" onClick={clear} className="text-gray-500 hover:text-gray-700">{t('common.cancel')}</button>
-              </div>
-              <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 space-y-1">
-                <div className="font-medium text-gray-700">{t('auth.demoCredentials')}:</div>
-                <div>👤 <code className="bg-white px-1.5 py-0.5 rounded">admin@demo.com</code></div>
-                <div>🔑 <code className="bg-white px-1.5 py-0.5 rounded">Admin@123</code></div>
-              </div>
-            </div>
           </Card>
         </div>
       </div>

@@ -81,9 +81,6 @@
     "emailOrUsername": "邮箱或用户名",
     "password": "密码",
     "forgot": "忘记密码?",
-    "demoHint": "演示超级管理员: admin@demo.com / Admin@123",
-    "useDemoCredentials": "⚡ 使用演示账户",
-    "demoCredentials": "演示账户",
     "identifier": "账号",
     "invalidCredentials": "邮箱或密码错误"
   },
