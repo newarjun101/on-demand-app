@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, RefreshCw, X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -58,7 +59,8 @@ export function BookingsPage() {
         <EmptyState title="No bookings" />
       ) : (
         <Card>
-          <table className="min-w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
             <thead className="text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
               <tr>
                 <th className="text-left py-2 px-3">{t('auth.fullName')}</th>
@@ -90,11 +92,15 @@ export function BookingsPage() {
                         <RefreshCw size={14} className="mr-1" /> {t('bookings.refund')}
                       </Button>
                     )}
+                    <Link to={`/bookings/${b.id}`} className="inline-flex items-center px-2.5 py-1 ml-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 rounded-md">
+                      View
+                    </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
       {data && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />}

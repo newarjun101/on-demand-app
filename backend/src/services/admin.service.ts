@@ -148,6 +148,38 @@ export const adminService = {
     };
   },
 
+  async getWorkerFull(workerId: string) {
+    const w = await prisma.workerProfile.findUnique({
+      where: { id: workerId },
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true, isActive: true, isBanned: true, bannedReason: true, createdAt: true, lastLoginAt: true } },
+        services: { include: { service: { include: { category: true } } } },
+        availability: true,
+        kycDocuments: { orderBy: { createdAt: 'desc' } },
+        documents: true,
+      },
+    });
+    if (!w) throw errors.notFound('Worker not found');
+    return w;
+  },
+
+  async getBookingFull(bookingId: string) {
+    const b = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        customer: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true } },
+        worker: { select: { id: true, fullName: true, email: true, phone: true, avatarUrl: true, workerProfile: { select: { id: true, verificationStatus: true } } } },
+        request: { include: { service: { include: { category: true } } } },
+        quote: true,
+        payment: true,
+        review: true,
+        dispute: true,
+      },
+    });
+    if (!b) throw errors.notFound('Booking not found');
+    return b;
+  },
+
   async banUser(actorId: string, userId: string, reason: string) {
     if (userId === actorId) throw errors.badRequest('You cannot ban yourself');
     const before = await prisma.user.findUnique({ where: { id: userId } });

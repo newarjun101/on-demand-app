@@ -5,10 +5,13 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { UsersPage } from '@/pages/UsersPage';
+import { UserDetailPage } from '@/pages/UserDetailPage';
 import { WorkersPage } from '@/pages/WorkersPage';
+import { WorkerDetailPage } from '@/pages/WorkerDetailPage';
 import { KycPage } from '@/pages/KycPage';
 import { KycDetailPage } from '@/pages/KycDetailPage';
 import { BookingsPage } from '@/pages/BookingsPage';
+import { BookingDetailPage } from '@/pages/BookingDetailPage';
 import { CategoriesPage } from '@/pages/CategoriesPage';
 import { BoostTiersPage } from '@/pages/BoostTiersPage';
 import { BroadcastPage } from '@/pages/BroadcastPage';
@@ -58,10 +61,13 @@ export default function App() {
                   <Route index element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/users" element={<UsersPage />} />
+                  <Route path="/users/:id" element={<UserDetailPage />} />
                   <Route path="/workers" element={<WorkersPage />} />
+                  <Route path="/workers/:id" element={<WorkerDetailPage />} />
                   <Route path="/kyc" element={<KycPage />} />
                   <Route path="/kyc/:workerProfileId" element={<KycDetailPage />} />
                   <Route path="/bookings" element={<BookingsPage />} />
+                  <Route path="/bookings/:id" element={<BookingDetailPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/boost-tiers" element={<BoostTiersPage />} />
                   <Route path="/payments" element={<PaymentsPage />} />

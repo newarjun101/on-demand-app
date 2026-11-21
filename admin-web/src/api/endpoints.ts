@@ -85,11 +85,13 @@ export const adminApi = {
   analytics: () => apiClient.get('/admin/analytics').then((r) => r.data.data),
   listUsers: (params: { page?: number; pageSize?: number; q?: string; role?: string; status?: string } = {}) =>
     apiClient.get('/admin/users', { params }).then((r) => r.data.data),
+  getUser: (id: string) => apiClient.get(`/admin/users/${id}`).then((r) => r.data.data),
   deleteUser: (id: string) => apiClient.delete(`/admin/users/${id}`).then((r) => r.data),
   banUser: (id: string, reason: string) => apiClient.post(`/admin/users/${id}/ban`, { reason }).then((r) => r.data),
   unbanUser: (id: string) => apiClient.post(`/admin/users/${id}/unban`).then((r) => r.data),
   listWorkers: (params: { page?: number; pageSize?: number; q?: string; status?: string } = {}) =>
     apiClient.get('/admin/workers', { params }).then((r) => r.data.data),
+  getWorker: (id: string) => apiClient.get(`/admin/workers/${id}`).then((r) => r.data.data),
   approveWorker: (id: string) => apiClient.post(`/admin/workers/${id}/approve`).then((r) => r.data),
   rejectWorker: (id: string, reason: string) => apiClient.post(`/admin/workers/${id}/reject`, { reason }).then((r) => r.data),
   suspendWorker: (id: string, reason: string) => apiClient.post(`/admin/workers/${id}/suspend`, { reason }).then((r) => r.data),
@@ -103,6 +105,7 @@ export const adminApi = {
     apiClient.post(`/admin/kyc/${id}/review`, body).then((r) => r.data),
   listBookings: (params: { page?: number; pageSize?: number; status?: string } = {}) =>
     apiClient.get('/admin/bookings', { params }).then((r) => r.data.data),
+  getBooking: (id: string) => apiClient.get(`/admin/bookings/${id}`).then((r) => r.data.data),
   refundBooking: (id: string, amount: number, reason: string) =>
     apiClient.post(`/admin/bookings/${id}/refund`, { amount, reason }).then((r) => r.data),
   listCategories: () => apiClient.get('/admin/categories').then((r) => r.data.data),

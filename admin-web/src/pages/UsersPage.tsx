@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Ban, Trash2, ShieldAlert, UserCheck, LogIn as ImpersonateIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -86,6 +87,7 @@ export function UsersPage() {
       ) : (
         <>
           <Card>
+          <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
                 <tr>
@@ -132,6 +134,9 @@ export function UsersPage() {
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-2 px-3 text-right">
+                      <Link to={`/users/${u.id}`} className="inline-flex items-center px-2.5 py-1 mr-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 rounded-md">
+                        View
+                      </Link>
                       {u.isBanned ? (
                         hasPermission('users:ban') && (
                           <Button size="sm" variant="outline" onClick={() => unbanMut.mutate(u.id)} loading={unbanMut.isPending}>
@@ -160,6 +165,7 @@ export function UsersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
           </Card>
           <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
         </>

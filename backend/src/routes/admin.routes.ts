@@ -33,6 +33,7 @@ adminRouter.delete('/users/:id', requirePermission('users:delete'), adminControl
 adminRouter.post('/users/:id/impersonate', requirePermission('users:impersonate'), adminController.impersonate);
 
 adminRouter.get('/workers', requirePermission('workers:view'), adminController.listWorkers);
+adminRouter.get('/workers/:id', requirePermission('workers:view'), adminController.getWorker);
 adminRouter.post('/workers/:id/approve', requirePermission('workers:verify'), adminController.approveWorker);
 adminRouter.post('/workers/:id/reject', requirePermission('workers:verify'), adminController.rejectWorker);
 adminRouter.post('/workers/:id/suspend', requirePermission('workers:suspend'), adminController.suspendWorker);
@@ -43,6 +44,7 @@ adminRouter.get('/kyc', requirePermission('kyc:view'), adminController.listKyc);
 adminRouter.post('/kyc/:id/review', requirePermission('kyc:approve'), adminController.reviewKyc);
 
 adminRouter.get('/bookings', requirePermission('bookings:view'), adminController.listBookings);
+adminRouter.get('/bookings/:id', requirePermission('bookings:view'), adminController.getBooking);
 adminRouter.post('/bookings/:id/refund', requirePermission('bookings:refund'), adminController.refundBooking);
 
 adminRouter.get('/categories', requirePermission('categories:view'), adminController.listCategories);

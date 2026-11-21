@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check, X, Briefcase, FileText, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -68,7 +69,8 @@ export function WorkersPage() {
       ) : (
         <>
         <Card>
-          <table className="min-w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
             <thead className="text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200">
               <tr>
                 <th className="text-left py-2 px-3">{t('auth.fullName')}</th>
@@ -103,6 +105,9 @@ export function WorkersPage() {
                   <td className="py-2 px-3">★ {w.ratingAverage.toFixed(1)} ({w.ratingCount})</td>
                   <td className="py-2 px-3">{w.completedJobs}</td>
                   <td className="py-2 px-3 text-right space-x-1">
+                    <Link to={`/workers/${w.id}`} className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 border border-indigo-200 rounded-md">
+                      View
+                    </Link>
                     {hasPermission('workers:verify') && w.verificationStatus === 'PENDING' && (
                       <>
                         <Button size="sm" onClick={() => approveMut.mutate(w.id)} loading={approveMut.isPending}><Check size={14} className="mr-1" /> {t('workers.approve')}</Button>
@@ -117,6 +122,7 @@ export function WorkersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
         <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
         </>

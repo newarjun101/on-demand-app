@@ -3,10 +3,23 @@
 ## Required orientation
 
 Before making a non-trivial change, read
-[`docs/PROJECT_KNOWLEDGE.md`](docs/PROJECT_KNOWLEDGE.md). It is the maintained
-implementation map for the four applications: domain lifecycles, API
+[`.ai/README.md`](.ai/README.md) (shared AI project memory) and
+[`docs/PROJECT_KNOWLEDGE.md`](docs/PROJECT_KNOWLEDGE.md). Together they form the
+maintained implementation map for the four applications: domain lifecycles, API
 conventions, authorization, database relationships, realtime events, frontend
 ownership, operational checks, and known caveats.
+
+### Shared AI Memory Rules
+
+All coding agents (regardless of AI provider) must:
+1. Read `.ai/PROJECT_CONTEXT.md`, `.ai/ARCHITECTURE.md`, `.ai/tasks/CURRENT_TASK.md`, and `.ai/handoffs/LATEST_HANDOFF.md` before development.
+2. Inspect actual implementation before making changes.
+3. Follow the existing architecture and conventions in `.ai/CODING_CONVENTIONS.md`.
+4. Update relevant `.ai/` memory files after significant changes.
+5. Record important technical discoveries in `.ai/memory/`.
+6. Maintain task progress in `.ai/tasks/`.
+7. Create handoffs in `.ai/handoffs/LATEST_HANDOFF.md` for other agents.
+8. Never invent project requirements; preserve existing functionality and verify changes before reporting completion.
 
 Use the knowledge base as the starting point, then inspect the closest existing
 implementation before editing. The source code and Prisma schema remain the
